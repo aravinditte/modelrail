@@ -54,18 +54,26 @@ def execute_run(db: Session, run: EvaluationRun) -> EvaluationRun:
     db.commit()
     try:
         cases = load_dataset(get_settings().eval_dataset_path)
+        deadline_s = get_settings().evaluation_job_deadline_s
+
+        def _check_deadline(phase: str) -> None:
+            if time.monotonic() - started > deadline_s:
+                raise TimeoutError(f"evaluation job deadline ({deadline_s:.0f}s) exceeded during {phase}")
+
         baseline_report = runner_module.run_evaluation(
             cases,
             mode=_mode_for(run.baseline_model),
             model_name=run.baseline_model,
             dataset_version=run.dataset_version,
         )
+        _check_deadline("baseline evaluation")
         candidate_report = runner_module.run_evaluation(
             cases,
             mode=_mode_for(run.candidate_model),
             model_name=run.candidate_model,
             dataset_version=run.dataset_version,
         )
+        _check_deadline("candidate evaluation")
         passed, failures = gate_module.compare_reports(baseline_report, candidate_report)
         # persist sanitised per-case results for the candidate
         db.query(EvaluationResult).filter(EvaluationResult.run_id == run.id).delete()
