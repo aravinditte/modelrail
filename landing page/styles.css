@@ -250,13 +250,41 @@ button {
 	color: #fff;
 	transition: color 0.3s;
 	text-align: center;
-	line-height: 1.5;
+	line-height: 1.45;
 }
 .clock .lbl {
-	opacity: 0.55;
+	opacity: 0.8;
+	font-size: 9.5px;
+	letter-spacing: 0.09em;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+}
+.clock .live-dot {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: #00e599;
+	box-shadow: 0 0 6px rgba(0, 229, 153, 0.8);
+	animation: pulse-clock-dot 2s infinite ease-in-out;
+}
+@keyframes pulse-clock-dot {
+	0%, 100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.35;
+		transform: scale(0.8);
+	}
 }
 .header.scrolled .clock {
 	color: var(--ink);
+}
+.header.scrolled .clock .lbl {
+	opacity: 0.7;
 }
 @media (min-width: 900px) {
 	.clock {

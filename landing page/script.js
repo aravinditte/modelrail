@@ -13,8 +13,88 @@
 	onScroll();
 	window.addEventListener("scroll", onScroll, { passive: true });
 
-	/* ---------- Live clock ---------- */
+	/* ---------- Location-Aware Live Clock (Spec §nav) ---------- */
 	const clockEl = $("#clock-time");
+	const clockLocEl = $("#clock-location");
+
+	function getTzAbbr() {
+		try {
+			return (
+				new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
+					.formatToParts(new Date())
+					.find((p) => p.type === "timeZoneName")?.value || ""
+			);
+		} catch (_e) {
+			return "";
+		}
+	}
+
+	function renderLocation(text) {
+		if (!clockLocEl) return;
+		const txtEl = clockLocEl.querySelector(".loc-txt");
+		if (txtEl) {
+			txtEl.textContent = text;
+		} else {
+			clockLocEl.innerHTML = `<span class="live-dot" aria-hidden="true"></span><span class="loc-txt">${text}</span>`;
+		}
+	}
+
+	// 1. Instant client-side location & timezone from browser (0ms latency, 100% reliable)
+	const tzAbbr = getTzAbbr();
+	let detectedTz = "UTC";
+	try {
+		detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+		const parts = detectedTz.split("/");
+		const cityFromTz = (parts[parts.length - 1] || "LOCAL").replace(/_/g, " ").toUpperCase();
+		const initialLabel = tzAbbr ? `${cityFromTz} · ${tzAbbr}` : cityFromTz;
+		renderLocation(initialLabel);
+	} catch (_e) {
+		renderLocation("LOCAL TIME");
+	}
+
+	// 2. Refine with IP geolocation asynchronously (non-blocking)
+	function refineLocationViaIp() {
+		try {
+			const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+			const timeoutId = controller ? setTimeout(() => controller.abort(), 4000) : null;
+			fetch("https://ipapi.co/json/", { signal: controller ? controller.signal : undefined })
+				.then((res) => {
+					if (timeoutId) clearTimeout(timeoutId);
+					if (!res.ok) throw new Error("HTTP " + res.status);
+					return res.json();
+				})
+				.then((data) => {
+					if (data && data.city) {
+						const city = data.city.toUpperCase();
+						const country = data.country_code ? `, ${data.country_code}` : "";
+						const zone = data.utc_offset || tzAbbr;
+						renderLocation(`${city}${country} · ${zone}`);
+					}
+				})
+				.catch(() => {
+					// Fallback to secondary IP geolocation provider if primary is rate-limited
+					fetch("https://ipwho.is/")
+						.then((r) => r.json())
+						.then((data) => {
+							if (data && data.success && data.city) {
+								const city = data.city.toUpperCase();
+								const country = data.country_code ? `, ${data.country_code}` : "";
+								renderLocation(`${city}${country} · ${tzAbbr}`);
+							}
+						})
+						.catch(() => {
+							// Retain the Intl timezone city
+						});
+				});
+		} catch (_e) {
+			// Retain initial client detection
+		}
+	}
+
+	if (typeof window !== "undefined" && window.fetch) {
+		setTimeout(refineLocationViaIp, 100);
+	}
+
 	function tick() {
 		try {
 			clockEl.textContent = new Intl.DateTimeFormat("en-US", {
