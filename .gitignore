@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-error.log*
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Databases and local data
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+redis_data/
+
+# Tooling / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Build and benchmark artefacts
+dist/
+build/
+benchmarks/results/*.json
+!benchmarks/results/.gitkeep
