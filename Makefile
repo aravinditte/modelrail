@@ -4,7 +4,10 @@ OBS := -f docker-compose.yml -f docker-compose.observability.yml
 PY ?= python
 export PYTHONPATH := apps/gateway:packages/evals
 
-.PHONY: setup up down test test-unit eval eval-gate migrate seed demo logs
+.PHONY: setup up down test test-unit eval eval-gate migrate seed demo logs site
+
+site: ## Serve the landing page locally on port 8080
+	$(PY) -m http.server 8080 --directory "landing page"
 
 setup: ## Copy .env.example to .env (if needed) and build all images
 	@test -f .env || cp .env.example .env

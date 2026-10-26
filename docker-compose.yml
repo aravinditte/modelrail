@@ -108,6 +108,17 @@ services:
       - ollama_data:/root/.ollama
     restart: unless-stopped
 
+  landing-page:
+    image: python:3.12-alpine
+    profiles: ["site", "landing"]
+    command: ["python", "-m", "http.server", "8080", "--directory", "landing page"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app:ro
+    working_dir: /app
+    restart: unless-stopped
+
   test-runner:
     build:
       context: .

@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>ModelRail — Local-First LLM Gateway &amp; AI Reliability Platform</title>
+		<meta
+			name="description"
+			content="ModelRail is a self-hostable, OpenAI-compatible AI inference gateway and reliability platform with dynamic routing, circuit breakers, 2-phase budget reservations, and CI evaluation gates."
+		>
+		<link rel="stylesheet" href="styles.css">
+	</head>
+	<body>
+		<!-- ================= HEADER ================= -->
+		<header class="header" id="header">
+			<div class="wrap header-inner">
+				<a href="#top" class="logo">MODEL<span class="sep">//</span>RAIL</a>
+				<div class="clock">
+					<div class="lbl">GATEWAY · LOCAL-FIRST</div>
+					<div id="clock-time">00:00:00</div>
+				</div>
+				<div class="menu-wrap">
+					<button
+						class="menu-btn"
+						id="menu-btn"
+						aria-haspopup="true"
+						aria-expanded="false"
+					>
+						<span>System</span>
+						<svg
+							width="18"
+							height="18"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path d="M4 8h16M4 16h16" />
+						</svg>
+					</button>
+					<nav class="dropdown" id="dropdown" aria-label="System Navigation">
+						<a href="#architecture">Architectural Thesis</a>
+						<a href="#capabilities">Routing &amp; Resilience</a>
+						<a href="#metrics">Verified Benchmarks</a>
+						<a href="#deployments">Deployment Models</a>
+						<a href="#cases">Reliability Proofs</a>
+						<a href="#quickstart">Quickstart &amp; API</a>
+						<a href="#faq">Architecture FAQ</a>
+						<hr>
+						<a href="http://localhost:8000/docs" target="_blank" rel="noopener">OpenAPI Docs (/docs) ↗</a>
+						<a href="http://localhost:3000" target="_blank" rel="noopener">Next.js Dashboard ↗</a>
+					</nav>
+				</div>
+			</div>
+		</header>
+
+		<main>
+			<!-- ================= HERO ================= -->
+			<section class="hero" id="top">
+				<canvas id="hero-canvas"></canvas>
+				<div class="wrap">
+					<div class="hero-top">
+						<div class="hero-lead reveal d1">
+							<span class="idx">(01) — PRODUCTION AI GATEWAY</span>
+							<p>
+								A self-hostable, OpenAI-compatible inference gateway and AI reliability platform.
+								Centralized authentication, multi-tenant isolation, dynamic model routing,
+								hard budget reservations, circuit breakers, and CI-gated regression testing — running completely local-first.
+							</p>
+						</div>
+
+						<aside class="ticker-card reveal d2" aria-label="Live gateway telemetry">
+							<div class="tc-head">
+								<span class="tc-tag">GATEWAY · TELEMETRY</span>
+								<span class="tc-dot"></span>
+							</div>
+							<div class="tc-chart">
+								<svg
+									id="spark"
+									viewBox="0 0 280 88"
+									preserveAspectRatio="none"
+									aria-hidden="true"
+								></svg>
+							</div>
+							<div class="tc-metric">
+								<span class="val" id="tc-val">0.00<em>%</em></span>
+								<span class="lab" id="tc-lab">Duplicate Tokens on Retries</span>
+							</div>
+							<a href="#capabilities" class="tc-cta"
+								>Inspect System Architecture <span>→</span></a
+							>
+						</aside>
+					</div>
+
+					<h1 class="hero-word mask in"><span>MODELRAIL</span></h1>
+				</div>
+			</section>
+
+			<!-- ================= MARQUEE ================= -->
+			<div class="marquee-strip" aria-hidden="true">
+				<div class="marquee" id="marquee"></div>
+			</div>
+
+			<!-- ================= THESIS ================= -->
+			<section class="section" id="architecture">
+				<div class="wrap">
+					<div class="thesis-head reveal">
+						<span class="idx">(02)</span>
+						<h2 class="thesis-statement mask">
+							<span
+								>Operating LLMs in production is not a prompt-wrapper problem — it is a
+								<em>distributed systems reliability problem</em>.</span
+							>
+						</h2>
+					</div>
+
+					<div class="thesis-split">
+						<div class="reveal d1">
+							<div class="eyebrow" style="margin-bottom:22px;">
+								<b>Core</b>
+								Invariants
+							</div>
+							<div class="method-grid">
+								<div class="method-cell">
+									<span class="step">STEP 01</span>
+									<h4>Intercept &amp; Authorize</h4>
+									<p>
+										SHA-256 peppered keys, tenant project resolution, sliding-window RPM/TPM rate limits, and two-phase budget reservation.
+									</p>
+								</div>
+								<div class="method-cell">
+									<span class="step">STEP 02</span>
+									<h4>Policy Routing</h4>
+									<p>
+										Alias resolution across Priority, Cost-Aware, or Latency-Aware algorithms across Mock, Ollama, and remote providers.
+									</p>
+								</div>
+								<div class="method-cell">
+									<span class="step">STEP 03</span>
+									<h4>Resilient Execution</h4>
+									<p>
+										Bounded retries with exponential jitter, three-state circuit breakers (Closed / Open / Half-Open), and automatic fallback.
+									</p>
+								</div>
+								<div class="method-cell">
+									<span class="step">STEP 04</span>
+									<h4>Settle &amp; Benchmark</h4>
+									<p>
+										Atomic budget settlement, zero duplicate usage events on retries, correlated attempt IDs, and CI evaluation regression gates.
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="thesis-copy reveal d2">
+							<h3>Where inference meets disciplined systems engineering.</h3>
+							<p>
+								Most LLM integrations fail quietly in production: runaway token budgets from concurrent race conditions, cascading outages from flaky remote endpoints, double-billed retries, and unmeasured model quality regressions.
+							</p>
+							<p>
+								ModelRail replaces naive provider wrappers with a hardened gateway architecture. Built as a modular monolith in Python 3.12 with PostgreSQL and Redis, it treats inference as an auditable, verifiable platform capability with zero cloud lock-in.
+							</p>
+							<a href="#capabilities" class="linkrow"
+								><span>Explore Platform Engines</span><span class="dot"></span></a
+							>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= CAPABILITIES ================= -->
+			<section class="section" id="capabilities">
+				<div class="wrap">
+					<div class="cap-head reveal">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(03) — PLATFORM CAPABILITIES</span
+							>
+							<h2>
+								Engineered for deterministic reliability, observable down to every token.
+							</h2>
+						</div>
+						<a href="#quickstart" class="cap-pill">System Specification</a>
+					</div>
+
+					<div class="acc" id="acc">
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">01</span>
+									<h3>Dynamic Multi-Provider Routing Engine</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											Decouples client applications from upstream providers through configurable model aliases.
+											Routes requests dynamically based on priority, cost per million tokens, or rolling latency percentiles across Mock, Ollama, and remote providers.
+										</p>
+										<ul>
+											<li>Priority Tiering &amp; Fallback</li>
+											<li>Cost-Aware Token Routing</li>
+											<li>Rolling P95 Latency Routing</li>
+											<li>Deterministic Mock &amp; Ollama</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">02</span>
+									<h3>Two-Phase Budget Reservations &amp; Tenancy</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											Solves the fundamental concurrency flaw in LLM gateways. Atomically reserves worst-case token costs prior to provider execution, preventing concurrent requests from over-allocating tenant budgets, and settles exact usage post-response.
+										</p>
+										<ul>
+											<li>Two-Phase Reserve &amp; Settle</li>
+											<li>Multi-Tenant Org &amp; Project Isolation</li>
+											<li>Sliding-Window RPM / TPM Limiters</li>
+											<li>Hard Budget &amp; Concurrency Semaphores</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">03</span>
+									<h3>Resilient Execution &amp; Circuit Breakers</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											Protects client services from upstream degradation. Automatically isolates failing providers with finite-state circuit breakers (Closed, Open, Half-Open), enforces per-provider timeouts, and retries with full exponential jitter without duplicate usage accounting.
+										</p>
+										<ul>
+											<li>Finite-State Circuit Breakers</li>
+											<li>Bounded Retries &amp; Full Jitter</li>
+											<li>Independent Attempt vs Request IDs</li>
+											<li>Graceful Degradation &amp; Failover</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">04</span>
+									<h3>Evaluation Framework &amp; CI Regression Gates</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											Ensures model quality is measured continuously rather than assumed. Evaluates models against categorized datasets (Reasoning, Extraction, Instruction, Refusal) with strict dev / held-out splits, blocking releases when accuracy degrades.
+										</p>
+										<ul>
+											<li>Dev vs Held-Out Benchmark Splits</li>
+											<li>Exact &amp; Fuzzy Semantic Rubrics</li>
+											<li>CI Regression Gating (&lt; 5% Threshold)</li>
+											<li>Historical Benchmark Run Tracking</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= METRICS ================= -->
+			<section class="section" id="metrics">
+				<div class="wrap">
+					<div class="eyebrow reveal" style="margin-bottom:48px;">
+						<span class="idx">(04)</span>
+						&nbsp; <b>Verified</b> Benchmarks
+					</div>
+					<div class="metrics-grid">
+						<div class="metric reveal d1">
+							<span class="fig"
+								><em>&lt;</em><span data-count="24.8" data-dec="1">0</span
+								><em>ms</em></span
+							><span class="lab">P95 Gateway Overhead</span>
+						</div>
+						<div class="metric reveal d2">
+							<span class="fig"><span data-count="183">0</span><em>+</em></span
+							><span class="lab">Automated Tests Passing</span>
+						</div>
+						<div class="metric reveal d3">
+							<span class="fig"><span data-count="0" data-dec="2">0</span><em>%</em></span
+							><span class="lab">Duplicate Usage on Retries</span>
+						</div>
+						<div class="metric reveal d4">
+							<span class="fig"><span data-count="100">0</span><em>%</em></span
+							><span class="lab">Local-First Reproducibility</span>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= DEPLOYMENT MODELS ================= -->
+			<section class="section" id="deployments">
+				<div class="wrap">
+					<div class="eng-head reveal">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(05) — DEPLOYMENT ARCHITECTURE</span
+							>
+							<h2>Zero cloud dependencies required. Run locally, scale when ready.</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>Modular Stacks</span
+						>
+					</div>
+
+					<div class="eng-grid">
+						<!-- Local Edge -->
+						<div class="plan dark reveal d1">
+							<div class="plan-top">
+								<div class="plan-row">
+									<span class="plan-badge">Local Edge</span>
+									<span class="toggle"
+										><span class="t-on" data-on="retainer">MOCK</span>
+										<button
+											class="knob"
+											data-toggle="retainer"
+											aria-label="Toggle local provider mode"
+										>
+											<span class="dot"></span>
+										</button>
+										<span class="t-off" data-off="retainer">OLLAMA</span></span
+									>
+								</div>
+								<div class="plan-price">
+									<span class="cap" id="retainer-cap">Deterministic Mock Provider</span>
+									<span class="amt"
+										><strong id="retainer-amt">$0</strong><span id="retainer-per">/ forever</span></span
+									>
+								</div>
+							</div>
+							<div class="plan-bottom">
+								<h4>Offline Development</h4>
+								<ul>
+									<li>Deterministic mock provider (0-50ms)</li>
+									<li>Local Ollama adapter (Llama 3.1, Mistral)</li>
+									<li>In-memory SQLite &amp; local caching</li>
+									<li>Full test suite runnable in seconds</li>
+								</ul>
+								<a href="#quickstart" class="plan-cta">Quickstart CLI</a>
+							</div>
+						</div>
+
+						<!-- Production Compose -->
+						<div class="plan reveal d2">
+							<div class="plan-top">
+								<div class="plan-row">
+									<span class="plan-badge">Production Compose</span>
+									<span class="toggle"
+										><span class="t-on" data-on="sprint">CORE</span>
+										<button
+											class="knob"
+											data-toggle="sprint"
+											aria-label="Toggle compose profile"
+										>
+											<span class="dot"></span>
+										</button>
+										<span class="t-off" data-off="sprint">FULL</span></span
+									>
+								</div>
+								<div class="plan-price">
+									<span class="cap" id="sprint-cap">Standard Gateway Stack</span>
+									<span class="amt"
+										><strong id="sprint-amt">100%</strong><span id="sprint-per">/ self-hosted</span></span
+									>
+								</div>
+							</div>
+							<div class="plan-bottom">
+								<h4>Full Gateway Stack</h4>
+								<ul>
+									<li>PostgreSQL 16 with Alembic migrations</li>
+									<li>Redis 7 for distributed rate limits</li>
+									<li>Two-phase budget reserve &amp; settle</li>
+									<li>Next.js administrative dashboard</li>
+								</ul>
+								<a href="#quickstart" class="plan-cta">Deploy With Compose</a>
+							</div>
+						</div>
+
+						<!-- Reliability & Evals -->
+						<div class="plan cobalt reveal d3">
+							<div class="plan-top">
+								<div class="plan-row">
+									<span class="plan-badge">Reliability &amp; Evals</span>
+									<span class="toggle"
+										><span class="t-on" data-on="mandate">DEV</span>
+										<button
+											class="knob"
+											data-toggle="mandate"
+											aria-label="Toggle evaluation split"
+										>
+											<span class="dot"></span>
+										</button>
+										<span class="t-off" data-off="mandate">HELD-OUT</span></span
+									>
+								</div>
+								<div class="plan-price">
+									<span class="cap" id="mandate-cap">Dev Benchmark Split (70/30)</span>
+									<span class="amt"
+										><strong id="mandate-amt">GATE</strong><span>/ CI block</span></span
+									>
+								</div>
+							</div>
+							<div class="plan-bottom">
+								<h4>Continuous Quality Gates</h4>
+								<ul>
+									<li>Evaluation suite (modelrail-eval-v1)</li>
+									<li>Regression gate blocks CI on &gt;5% drop</li>
+									<li>Prometheus metrics &amp; Grafana dashboards</li>
+									<li>OpenTelemetry distributed trace spans</li>
+								</ul>
+								<a href="#quickstart" class="plan-cta">Inspect Eval Harness</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= CASES ================= -->
+			<section class="section" id="cases">
+				<div class="wrap">
+					<div class="eng-head reveal" style="margin-bottom:64px;">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(06) — RELIABILITY PROOFS</span
+							>
+							<h2>Verifiable resilience under simulated faults and load.</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>Empirical Invariant Tests</span
+						>
+					</div>
+
+					<div class="cases-grid">
+						<article class="case reveal d1">
+							<div class="case-thumb">
+								<span class="case-tag">Fault Injection · Breaker</span>
+								<svg
+									id="viz1"
+									viewBox="0 0 400 250"
+									preserveAspectRatio="none"
+									aria-hidden="true"
+								></svg>
+							</div>
+							<h3>VERIFICATION 01: Provider Outage &amp; Breaker Trip</h3>
+							<p>
+								Injected 500ms network timeouts and 503 upstream errors on the primary mock route. ModelRail tripped the circuit breaker to OPEN after 3 failures, rerouting 100% of traffic to the standby fallback within 2ms. Zero client requests failed.
+							</p>
+							<div class="case-foot">
+								<span class="meta">Circuit Breaker, Route Failover</span>
+								<a href="#quickstart" class="out uline">View Invariant Test →</a>
+							</div>
+						</article>
+
+						<article class="case reveal d2">
+							<div class="case-thumb">
+								<span class="case-tag">Concurrency · Budget Race</span>
+								<svg
+									id="viz2"
+									viewBox="0 0 400 250"
+									preserveAspectRatio="none"
+									aria-hidden="true"
+								></svg>
+							</div>
+							<h3>VERIFICATION 02: High-Concurrency Budget Race</h3>
+							<p>
+								Dispatched 50 parallel asynchronous requests against a project with $0.05 remaining budget. Two-phase reservation atomically reserved estimated tokens and rejected overflow with 429 budget_exceeded. Final budget spent: exactly $0.0500.
+							</p>
+							<div class="case-foot">
+								<span class="meta">Atomic Locks, Tenant Quotas</span>
+								<a href="#quickstart" class="out uline">View Concurrency Test →</a>
+							</div>
+						</article>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= QUICKSTART & PLAYGROUND ================= -->
+			<section class="section" id="quickstart">
+				<div class="wrap">
+					<div class="eng-head reveal" style="margin-bottom:48px;">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(07) — DEVELOPER QUICKSTART</span
+							>
+							<h2>Drop-in OpenAI compatibility across any environment.</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>Interactive Gateway</span
+						>
+					</div>
+
+					<div class="qs-container reveal">
+						<div class="qs-tabs" role="tablist">
+							<button class="qs-tab active" data-tab="curl-sh" role="tab" aria-selected="true">cURL (Linux / macOS)</button>
+							<button class="qs-tab" data-tab="curl-ps" role="tab" aria-selected="false">PowerShell (curl.exe)</button>
+							<button class="qs-tab" data-tab="ps-irm" role="tab" aria-selected="false">PowerShell (Invoke-RestMethod)</button>
+							<button class="qs-tab" data-tab="python" role="tab" aria-selected="false">Python (OpenAI SDK)</button>
+						</div>
+
+						<div class="qs-body">
+							<div class="qs-code-wrap">
+								<div class="qs-code-header">
+									<span class="mono" style="font-size:11px;color:var(--faint);">REQUEST TERMINAL</span>
+									<button class="qs-copy-btn" id="qs-copy-btn" aria-label="Copy code">
+										<span>Copy</span>
+										<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+											<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+											<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+										</svg>
+									</button>
+								</div>
+								<pre class="qs-pre" id="qs-code-display"><code class="mono" id="qs-code-content"></code></pre>
+							</div>
+
+							<div class="qs-sim-panel">
+								<div class="qs-sim-head">
+									<span class="mono" style="font-size:11px;color:var(--cobalt);letter-spacing:0.12em;">GATEWAY LIFECYCLE SIMULATOR</span>
+									<button class="qs-sim-run" id="qs-sim-btn">Simulate Gateway Request</button>
+								</div>
+								<div class="qs-stepper" id="qs-stepper">
+									<div class="qs-step" data-step="1">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong>1. Auth &amp; Tenant Resolution</strong>
+											<span>Key verified · Project: demo-app (fd2a719f)</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="2">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong>2. Two-Phase Budget Reservation</strong>
+											<span>Reserved $0.000030 (Max 2,048 tokens worst-case)</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="3">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong>3. Policy Routing &amp; Circuit Breaker</strong>
+											<span>Alias: modelrail-fast → Selected: mock-1 (Circuit: CLOSED)</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="4">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong>4. Provider Execution &amp; Latency</strong>
+											<span>Latency: 22ms · HTTP 200 OK normalized</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="5">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong>5. Settlement &amp; Audit Persistence</strong>
+											<span>Charged $0.000018 (28 tokens) · Surplus $0.000012 released</span>
+										</div>
+									</div>
+								</div>
+								<div class="qs-sim-output" id="qs-sim-output">
+									<span class="mono" style="font-size:10px;color:var(--faint);">PAYLOAD RESPONSE (STATUS 200 OK)</span>
+									<pre class="mono" id="qs-sim-json"></pre>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= FAQ ================= -->
+			<section class="section" id="faq">
+				<div class="wrap">
+					<div class="eng-head reveal" style="margin-bottom:56px;">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(08) — ARCHITECTURAL FAQ</span
+							>
+							<h2>Clarity on engineering guarantees and trade-offs.</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>Technical FAQ</span
+						>
+					</div>
+
+					<div class="faq-split">
+						<div class="faq-cta reveal">
+							<h3>Ready to deploy a reliable AI gateway?</h3>
+							<p>
+								ModelRail is completely open-source, local-first, and fully reproducible with Docker Compose.
+								Inspect the interactive OpenAPI docs or spin up the full platform in under two minutes.
+							</p>
+							<a href="http://localhost:8000/docs" target="_blank" rel="noopener">Open Gateway Docs (/docs)</a>
+						</div>
+
+						<div class="faq-list reveal d1" id="faq-list">
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>How does ModelRail prevent budget over-allocation under high concurrency?</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										ModelRail implements a strict two-phase reservation protocol. Before dispatching an inference request to an upstream provider, the gateway computes worst-case token spend based on policy limits and creates an atomic reservation in PostgreSQL/Redis. If remaining project budget cannot cover the reservation, the request is immediately rejected with HTTP 429 budget_exceeded. Once the provider completes, ModelRail settles exact token usage and releases the unspent reservation.
+									</p>
+								</div>
+							</div>
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>Can ModelRail run completely offline without paid provider accounts?</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										Yes. ModelRail includes a built-in deterministic Mock Provider that responds instantly with configurable latency, streaming chunks, and simulated token generation, as well as an Ollama adapter for local open-source models (Llama 3.1, Mistral). The entire gateway, dashboard, tests, and evaluation suite run offline on a local laptop without spending a cent.
+									</p>
+								</div>
+							</div>
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>How does ModelRail handle retries without creating duplicate billing?</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										Logical requests and physical provider attempts are modeled as separate entities with distinct IDs (request_id vs attempt_id). When transient 5xx errors or timeouts trigger a retry or failover to another provider, each physical attempt is recorded with its own latency and status, but usage accounting and budget settlement are tied strictly to the final successful attempt of the parent request.
+									</p>
+								</div>
+							</div>
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>How are model evaluation regressions detected in CI?</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										ModelRail contains a standalone evaluation framework (packages/evals) with a versioned dataset (modelrail-eval-v1) divided into development and held-out test splits across Reasoning, Extraction, Instruction Following, and Refusal. The GitHub Actions CI pipeline runs the held-out evaluation suite automatically and asserts that pass rates do not degrade beyond the configured threshold (default 5%), blocking any release with regressions.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= BIG CTA ================= -->
+			<section class="section" id="contact">
+				<div class="wrap">
+					<a class="bigcta reveal" href="https://github.com/aravinditte/modelrail" target="_blank" rel="noopener">
+						<h2>Spin Up ModelRail</h2>
+						<span class="badge"
+							><svg
+								width="34"
+								height="34"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path d="M5 12h14M12 5l7 7-7 7" />
+							</svg></span
+						>
+					</a>
+				</div>
+			</section>
+		</main>
+
+		<!-- ================= FOOTER ================= -->
+		<footer class="footer">
+			<div class="wrap">
+				<div class="footer-top">
+					<div class="footer-quote">
+						<span class="footer-mark"
+							>MODEL<span class="sep">//</span>RAIL</span
+						>
+						<h5>
+							“A local-first AI inference gateway and reliability platform — built for engineers who demand verifiable resilience, deterministic budgets, and observable LLM operations.”
+						</h5>
+					</div>
+					<div class="footer-news">
+						<h5>The Reliability Dispatch — Architecture &amp; LLMOps</h5>
+						<form class="news-form" id="news-form" novalidate>
+							<div class="news-field">
+								<input
+									type="text"
+									id="nf-name"
+									placeholder="Your Name"
+									autocomplete="name"
+								>
+							</div>
+							<div class="news-field">
+								<input
+									type="email"
+									id="nf-email"
+									placeholder="Engineering Email"
+									autocomplete="email"
+								>
+							</div>
+							<button type="submit">Subscribe to Dispatch</button>
+							<span class="news-msg" id="news-msg" aria-live="polite"></span>
+						</form>
+					</div>
+				</div>
+
+				<div class="footer-cols">
+					<div class="fcol">
+						<h6>Gateway</h6>
+						<a href="#architecture">Architecture</a><a href="#capabilities">Routing &amp; Resilience</a
+						><a href="#cases">Reliability Proofs</a
+						><a href="#metrics">Verified Benchmarks</a>
+					</div>
+					<div class="fcol">
+						<h6>Evaluation</h6>
+						<a href="#deployments">Evaluation Harness</a
+						><a href="#capabilities">Held-Out Splits</a
+						><a href="#faq">CI Regression Gate</a>
+					</div>
+					<div class="fcol">
+						<h6>Developer</h6>
+						<a href="http://localhost:8000/docs" target="_blank" rel="noopener">OpenAPI Swagger (/docs)</a
+						><a href="http://localhost:3000" target="_blank" rel="noopener">Next.js Dashboard</a
+						><a href="https://github.com/aravinditte/modelrail" target="_blank" rel="noopener">GitHub Repository</a>
+						<span
+							class="mono"
+							style="display:block;margin-top:22px;color:var(--faint);font-size:10px;"
+							>Docker Local Compose</span
+						>
+						<span class="mono" style="color:var(--ivory);font-size:12px;"
+							>docker compose up --build</span
+						>
+					</div>
+				</div>
+
+				<div class="footer-bottom">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M12 3L2 21h20L12 3z" fill-opacity="0.35" />
+					</svg>
+					<div class="legal">
+						<a href="https://github.com/aravinditte/modelrail/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a><span>/</span
+						><a href="#architecture">Local-First Architecture</a>
+					</div>
+					<span>© 2026 ModelRail AI Systems · Open Source (MIT) · Tokyo / Shibuya &amp; Global</span>
+				</div>
+			</div>
+		</footer>
+
+		<script src="script.js"></script>
+	</body>
+</html>

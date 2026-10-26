@@ -112,6 +112,7 @@ Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions `
 ### Compose Profiles
 
 - **Dashboard UI:** `docker compose --profile dashboard up -d` → http://localhost:3000
+- **Landing Page / Showcase:** `docker compose --profile site up -d` → http://localhost:8080 (or `python -m http.server 8080 --directory "landing page"`)
 - **Full Observability:** `docker compose -f docker-compose.yml -f docker-compose.observability.yml --profile observability up -d`
 - **Test Runner:** `docker compose --profile test up --abort-on-container-exit`
 - **Local Ollama:** `docker compose --profile ollama up -d`
