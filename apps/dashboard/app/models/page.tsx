@@ -29,7 +29,9 @@ export default function ModelsPage() {
     const body: Row = {
       alias: form.alias, provider: form.provider, upstream_model: form.upstream_model,
       priority: Number(form.priority),
-      capabilities: form.capabilities.split(",").map((s) => s.trim()).filter(Boolean),
+      capabilities: Object.fromEntries(
+        form.capabilities.split(",").map((s) => s.trim()).filter(Boolean).map((k) => [k, true])
+      ),
       enabled: true,
     };
     try {
