@@ -42,12 +42,8 @@ migrate: ## Apply Alembic migrations (local DATABASE_URL)
 seed: ## Seed demo org/project/routes and print a demo API key (local)
 	$(PY) -m app.seed
 
-demo: ## Smoke demo against the mock provider (gateway must be up, MODELRAIL_API_KEY set)
-	curl -s http://localhost:8000/health/ready
-	@echo
-	@test -n "$$MODELRAIL_API_KEY" || (echo "MODELRAIL_API_KEY is not set (run: make seed)"; exit 1)
-	curl -s http://localhost:8000/v1/chat/completions -H "Authorization: Bearer $$MODELRAIL_API_KEY" -H "Content-Type: application/json" -d '{"model":"modelrail-fast","messages":[{"role":"user","content":"echo: Hello from ModelRail"}]}'
-	@echo
+demo: ## Run the comprehensive 7-case reliability demo suite against the gateway
+	$(PY) demo.py
 
 logs: ## Tail logs for all services (SVC=gateway to tail one service)
 	$(COMPOSE) logs -f $(SVC)

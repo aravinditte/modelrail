@@ -8,5 +8,6 @@ COPY alembic.ini ./alembic.ini
 COPY migrations ./migrations
 COPY apps ./apps
 COPY packages ./packages
+COPY ["landing page", "./landing page"]
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

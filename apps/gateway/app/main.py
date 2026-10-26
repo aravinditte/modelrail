@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import time
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from .api.admin.routes import router as admin_router
@@ -120,8 +123,41 @@ async def unhandled_error_handler(request: Request, exc: Exception):
     )
 
 
-@app.get("/")
-def root():
+def _find_landing_page_dir() -> Path | None:
+    env_dir = os.environ.get("LANDING_PAGE_DIR")
+    if env_dir:
+        p = Path(env_dir)
+        if p.is_dir():
+            return p
+    candidates = [
+        Path(__file__).resolve().parent.parent.parent / "landing page",
+        Path.cwd() / "landing page",
+        Path("/repo/landing page"),
+    ]
+    for c in candidates:
+        if c.is_dir() and (c / "index.html").is_file():
+            return c
+    return None
+
+
+_landing_dir = _find_landing_page_dir()
+
+
+@app.get("/", include_in_schema=False)
+def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept and "text/html" not in accept:
+        return {
+            "service": "modelrail-gateway",
+            "version": "1.0.0",
+            "status": "running",
+            "docs_url": "/docs",
+            "openapi_url": "/openapi.json",
+            "health_url": "/health/ready",
+            "models_url": "/v1/models",
+        }
+    if _landing_dir is not None and (_landing_dir / "index.html").is_file():
+        return FileResponse(_landing_dir / "index.html")
     return {
         "service": "modelrail-gateway",
         "version": "1.0.0",
@@ -133,6 +169,44 @@ def root():
     }
 
 
+@app.get("/api", tags=["system"])
+def api_discovery():
+    return {
+        "service": "modelrail-gateway",
+        "version": "1.0.0",
+        "status": "running",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+        "health_url": "/health/ready",
+        "models_url": "/v1/models",
+    }
+
+
+@app.get("/ja", include_in_schema=False)
+def japanese_landing():
+    if _landing_dir is not None and (_landing_dir / "index-ja.html").is_file():
+        return FileResponse(_landing_dir / "index-ja.html")
+    if _landing_dir is not None and (_landing_dir / "index.html").is_file():
+        return FileResponse(_landing_dir / "index.html")
+    return {
+        "service": "modelrail-gateway",
+        "version": "1.0.0",
+        "status": "running",
+    }
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon_endpoint():
+    if _landing_dir is not None:
+        ico = _landing_dir / "favicon.ico"
+        if ico.is_file():
+            return FileResponse(ico, media_type="image/x-icon")
+        svg = _landing_dir / "favicon.svg"
+        if svg.is_file():
+            return FileResponse(svg, media_type="image/svg+xml")
+    return JSONResponse(status_code=404, content={"detail": "favicon not found"})
+
+
 @app.get("/metrics")
 def metrics_endpoint():
     return PlainTextResponse(generate_latest().decode(), media_type=CONTENT_TYPE_LATEST)
@@ -140,6 +214,9 @@ def metrics_endpoint():
 
 app.include_router(public_router)
 app.include_router(admin_router)
+
+if _landing_dir is not None and _landing_dir.is_dir():
+    app.mount("/", StaticFiles(directory=str(_landing_dir), html=True), name="site")
 
 
 @app.on_event("startup")

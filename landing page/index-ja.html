@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>ModelRail — ローカルファースト LLM ゲートウェイ &amp; AI 信頼性プラットフォーム</title>
+		<meta
+			name="description"
+			content="ModelRailは、動的ルーティング、サーキットブレーカー、2フェーズ予算予約、CI評価リグレッションゲートを備えた、セルフホスト可能なOpenAI互換AI推論ゲートウェイおよび信頼性プラットフォームです。"
+		>
+		<link rel="stylesheet" href="styles.css">
+		<link rel="icon" type="image/svg+xml" href="favicon.svg">
+		<link rel="alternate icon" type="image/png" href="favicon.png">
+		<link rel="shortcut icon" href="favicon.ico">
+	</head>
+	<body>
+		<!-- ================= HEADER ================= -->
+		<header class="header" id="header">
+			<div class="wrap header-inner">
+				<a href="#top" class="logo">MODEL<span class="sep">//</span>RAIL</a>
+				<div class="clock">
+					<div class="lbl">ゲートウェイ · ローカルファースト</div>
+					<div id="clock-time">00:00:00</div>
+				</div>
+				<div class="header-right">
+					<a href="index.html" class="lang-switch-btn" title="Switch to English">
+						<span class="lang-alt">ENG</span><span class="lang-sep">/</span><span class="lang-cur">日本語</span>
+					</a>
+					<div class="menu-wrap">
+						<button
+							class="menu-btn"
+							id="menu-btn"
+							aria-haspopup="true"
+							aria-expanded="false"
+						>
+							<span>システム</span>
+							<svg
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path d="M4 8h16M4 16h16" />
+							</svg>
+						</button>
+						<nav class="dropdown" id="dropdown" aria-label="System Navigation">
+							<a href="#architecture">アーキテクチャ原則</a>
+							<a href="#capabilities">ルーティング &amp; 耐障害性</a>
+							<a href="#metrics">検証済みベンチマーク</a>
+							<a href="#deployments">デプロイモデル</a>
+							<a href="#cases">信頼性実証ケース</a>
+							<a href="#quickstart">クイックスタート &amp; API</a>
+							<a href="#faq">技術FAQ</a>
+							<hr>
+							<a href="index.html">English Version (英語) ↗</a>
+							<a href="http://localhost:8000/docs" target="_blank" rel="noopener">OpenAPIドキュメント (/docs) ↗</a>
+						</nav>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<main>
+			<!-- ================= HERO ================= -->
+			<section class="hero" id="top">
+				<canvas id="hero-canvas"></canvas>
+				<div class="wrap">
+					<div class="hero-top">
+						<div class="hero-lead reveal d1">
+							<span class="idx">(01) — 本番環境向けAIゲートウェイ</span>
+							<p>
+								セルフホスト可能でOpenAI互換のAI推論ゲートウェイおよび信頼性プラットフォーム。
+								一元化された認証、マルチテナント分離、動的モデルルーティング、厳格な予算予約、サーキットブレーカー、CI評価リグレッションゲートを、完全なローカルファーストで提供します。
+							</p>
+							<div class="hero-actions">
+								<a href="#quickstart" class="hero-btn primary" id="hero-try-demo-btn">
+									<span>デモシミュレータを試す</span>
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+								</a>
+								<a href="http://localhost:8000/docs" target="_blank" rel="noopener" class="hero-btn secondary">
+									<span>APIドキュメント</span>
+									<span class="mono" style="font-size:10px;">(/docs) ↗</span>
+								</a>
+							</div>
+						</div>
+
+						<aside class="ticker-card reveal d2" aria-label="Live gateway telemetry">
+							<div class="tc-head">
+								<span class="tc-tag">ゲートウェイ · テレメトリ</span>
+								<span class="tc-dot"></span>
+							</div>
+							<div class="tc-chart">
+								<svg
+									id="spark"
+									viewBox="0 0 280 88"
+									preserveAspectRatio="none"
+									aria-hidden="true"
+								></svg>
+							</div>
+							<div class="tc-metric">
+								<span class="val" id="tc-val">0.00<em>%</em></span>
+								<span class="lab" id="tc-lab">再試行時の重複トークン消費</span>
+							</div>
+							<a href="#quickstart" class="tc-cta" id="tc-try-demo-btn"
+								>デモシミュレータを試す <span>→</span></a
+							>
+						</aside>
+					</div>
+
+					<h1 class="hero-word mask in"><span>MODELRAIL</span></h1>
+				</div>
+			</section>
+
+			<!-- ================= MARQUEE ================= -->
+			<div class="marquee-strip" aria-hidden="true">
+				<div class="marquee" id="marquee"></div>
+			</div>
+
+			<!-- ================= THESIS ================= -->
+			<section class="section" id="architecture">
+				<div class="wrap">
+					<div class="thesis-head reveal">
+						<span class="idx">(02)</span>
+						<h2 class="thesis-statement mask">
+							<span
+								>本番環境におけるLLM運用は、単なるプロンプトラッパーの課題ではなく、
+								<em>分散システムの信頼性工学の課題</em>です。</span
+							>
+						</h2>
+					</div>
+
+					<div class="thesis-split">
+						<div class="reveal d1">
+							<div class="eyebrow" style="margin-bottom:22px;">
+								<b>4つの</b>
+								不変原則
+							</div>
+							<div class="method-grid">
+								<div class="method-cell">
+									<span class="step">STEP 01</span>
+									<h4>傍受 &amp; 認証</h4>
+									<p>
+										SHA-256ペッパー付きAPIキー、テナント解決、スライディングウィンドウRPM/TPMレート制限、事前2フェーズ予算予約。
+									</p>
+								</div>
+								<div class="method-cell">
+									<span class="step">STEP 02</span>
+									<h4>ポリシールーティング</h4>
+									<p>
+										Priority、Cost-Aware、Latency-Awareアルゴリズムによるモック、Ollama、外部プロバイダー間の動的エイリアス解決。
+									</p>
+								</div>
+								<div class="method-cell">
+									<span class="step">STEP 03</span>
+									<h4>耐障害実行</h4>
+									<p>
+										指数バックオフとジッター付き有界再試行、3状態サーキットブレーカー（Closed / Open / Half-Open）、自動フェイルオーバー。
+									</p>
+								</div>
+								<div class="method-cell">
+									<span class="step">STEP 04</span>
+									<h4>精算 &amp; 評価</h4>
+									<p>
+										原子的予算精算、再試行時の重複計上ゼロ、相関試行ID、CI評価リグレッション検知ゲート。
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="thesis-copy reveal d2">
+							<h3>推論と厳格なシステムエンジニアリングの融合。</h3>
+							<p>
+								多くのLLM統合は本番環境で静かに破綻します。並行レースコンディションによる予算超過、不安定な外部APIによる連鎖障害、再試行時の二重課金、未測定のモデル品質低下などです。
+							</p>
+							<p>
+								ModelRailは脆弱なプロバイダーラッパーを排除し、Python 3.12、PostgreSQL、Redisで構築された堅牢なモジュラーモノリスとして設計されています。推論を監査・検証可能なプラットフォーム機能へと昇華させ、クラウドロックインなしで運用できます。
+							</p>
+							<a href="#capabilities" class="linkrow"
+								><span>プラットフォーム機能を確認</span><span class="dot"></span></a
+							>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= CAPABILITIES ================= -->
+			<section class="section" id="capabilities">
+				<div class="wrap">
+					<div class="cap-head reveal">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(03) — プラットフォーム機能</span
+							>
+							<h2>
+								決定論的信頼性を追求し、すべてのトークンを可観測に。
+							</h2>
+						</div>
+						<a href="#quickstart" class="cap-pill">仕様書アーキテクチャ</a>
+					</div>
+
+					<div class="acc" id="acc">
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">01</span>
+									<h3>動的マルチプロバイダールーティングエンジン</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											設定可能なモデルエイリアスにより、クライアントアプリを基盤プロバイダーの変動から疎結合化。優先度、100万トークンあたりのコスト、またはローリングP95レイテンシに基づいてモック、Ollama、外部プロバイダーへ最適ルーティングします。
+										</p>
+										<ul>
+											<li>優先度ティアリング &amp; 即時フェイルオーバー</li>
+											<li>コスト認識型トークン最適化ルーティング</li>
+											<li>ローリングP95レイテンシルーティング</li>
+											<li>決定論的モック &amp; Ollamaアダプター</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">02</span>
+									<h3>2フェーズ予算予約 &amp; マルチテナント分離</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											LLMゲートウェイにおける並行アクセスの根本欠陥を解決。プロバイダーへのディスパッチ前に最大想定トークンコストを不可分に事前引当し、並行リクエストによる予算超過を完全防止。レスポンス後に実トークン消費量を厳格に精算します。
+										</p>
+										<ul>
+											<li>2フェーズ予約 &amp; 精算プロトコル</li>
+											<li>組織 &amp; プロジェクト単位のテナント分離</li>
+											<li>スライディングウィンドウRPM / TPMリミッター</li>
+											<li>ハードトークン制限 &amp; 並行実行セマフォ</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">03</span>
+									<h3>耐障害性実行 &amp; サーキットブレーカー</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											上流APIの障害や遅延からクライアントシステムを防御。有限状態サーキットブレーカー（Closed / Open / Half-Open）で障害プロバイダーを自動隔離し、タイムアウト設定およびフルジッター付き有界再試行を実行。重複課金は一切発生しません。
+										</p>
+										<ul>
+											<li>有限状態サーキットブレーカー</li>
+											<li>有界再試行 &amp; フル指数ジッター</li>
+											<li>独立した試行ID vs リクエストID</li>
+											<li>グレースフルデグラデーション &amp; フォールバック</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="acc-item">
+							<button class="acc-btn">
+								<span class="left"
+									><span class="num">04</span>
+									<h3>評価フレームワーク &amp; CIリグレッションゲート</h3></span
+								>
+								<span class="acc-ico"
+									><svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+									>
+										<path d="M12 5v14M5 12h14" />
+									</svg></span
+								>
+							</button>
+							<div class="acc-content">
+								<div class="acc-inner">
+									<div class="spacer"></div>
+									<div class="acc-body">
+										<p>
+											モデル品質を感覚ではなく継続的ベンチマークで測定。推論モデルを4つのタスク分類（Reasoning、Extraction、Instruction、Refusal）で評価し、開発（70%）とテスト用（30%）のホールドアウト分割により、品質低下時に自動でCIデプロイを遮断します。
+										</p>
+										<ul>
+											<li>開発用 vs ホールドアウト評価分割 (70/30)</li>
+											<li>完全一致 &amp; ファジー意味論ルーブリック</li>
+											<li>CIリグレッションゲート (精度低下 &gt; 5% 阻止)</li>
+											<li>ベンチマーク実行履歴トラッキング</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= METRICS ================= -->
+			<section class="section" id="metrics">
+				<div class="wrap">
+					<div class="eyebrow reveal" style="margin-bottom:48px;">
+						<span class="idx">(04)</span>
+						&nbsp; <b>検証済み</b> ベンチマーク
+					</div>
+					<div class="metrics-grid">
+						<div class="metric reveal d1">
+							<span class="fig"
+								><em>&lt;</em><span data-count="24.8" data-dec="1">0</span
+								><em>ms</em></span
+							><span class="lab">P95 ゲートウェイオーバーヘッド</span>
+						</div>
+						<div class="metric reveal d2">
+							<span class="fig"><span data-count="183">0</span><em>+</em></span
+							><span class="lab">自動テスト全件パス</span>
+						</div>
+						<div class="metric reveal d3">
+							<span class="fig"><span data-count="0" data-dec="2">0</span><em>%</em></span
+							><span class="lab">再試行時の重複トークン消費</span>
+						</div>
+						<div class="metric reveal d4">
+							<span class="fig"><span data-count="100">0</span><em>%</em></span
+							><span class="lab">ローカルファースト完全再現性</span>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= DEPLOYMENT MODELS ================= -->
+			<section class="section" id="deployments">
+				<div class="wrap">
+					<div class="eng-head reveal">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(05) — デプロイアーキテクチャ</span
+							>
+							<h2>クラウド依存ゼロ。ローカルですぐ動き、必要に応じてスケール。</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>モジュラースタック</span
+						>
+					</div>
+
+					<div class="eng-grid">
+						<!-- Local Edge -->
+						<div class="plan dark reveal d1">
+							<div class="plan-top">
+								<div class="plan-row">
+									<span class="plan-badge">ローカルエッジ</span>
+									<span class="toggle"
+										><span class="t-on" data-on="retainer">モック</span>
+										<button
+											class="knob"
+											data-toggle="retainer"
+											aria-label="Toggle local provider mode"
+										>
+											<span class="dot"></span>
+										</button>
+										<span class="t-off" data-off="retainer">OLLAMA</span></span
+									>
+								</div>
+								<div class="plan-price">
+									<span class="cap" id="retainer-cap">決定論的モックプロバイダー</span>
+									<span class="amt"
+										><strong id="retainer-amt">$0</strong><span id="retainer-per">/ 永久無料</span></span
+									>
+								</div>
+							</div>
+							<div class="plan-bottom">
+								<h4>オフライン開発</h4>
+								<ul>
+									<li>決定論的モックプロバイダー (0-50ms)</li>
+									<li>ローカルOllamaアダプター (Llama 3.1、Mistral)</li>
+									<li>インメモリSQLite &amp; ローカルキャッシュ</li>
+									<li>全テストスイートを数秒でローカル実行</li>
+								</ul>
+								<a href="#quickstart" class="plan-cta">クイックスタート CLI</a>
+							</div>
+						</div>
+
+						<!-- Production Compose -->
+						<div class="plan reveal d2">
+							<div class="plan-top">
+								<div class="plan-row">
+									<span class="plan-badge">本番 Compose</span>
+									<span class="toggle"
+										><span class="t-on" data-on="sprint">標準</span>
+										<button
+											class="knob"
+											data-toggle="sprint"
+											aria-label="Toggle compose profile"
+										>
+											<span class="dot"></span>
+										</button>
+										<span class="t-off" data-off="sprint">クラスタ</span></span
+									>
+								</div>
+								<div class="plan-price">
+									<span class="cap" id="sprint-cap">標準ゲートウェイスタック</span>
+									<span class="amt"
+										><strong id="sprint-amt">100%</strong><span id="sprint-per">/ セルフホスト</span></span
+									>
+								</div>
+							</div>
+							<div class="plan-bottom">
+								<h4>完全ゲートウェイスタック</h4>
+								<ul>
+									<li>PostgreSQL 16 &amp; Alembicマイグレーション</li>
+									<li>Redis 7による分散レート制限</li>
+									<li>2フェーズ予算予約 &amp; 精算制御</li>
+									<li>一元化された管理API &amp; 監査ログ</li>
+								</ul>
+								<a href="#quickstart" class="plan-cta">Composeでデプロイ</a>
+							</div>
+						</div>
+
+						<!-- Reliability & Evals -->
+						<div class="plan cobalt reveal d3">
+							<div class="plan-top">
+								<div class="plan-row">
+									<span class="plan-badge">信頼性 &amp; 評価</span>
+									<span class="toggle"
+										><span class="t-on" data-on="mandate">開発</span>
+										<button
+											class="knob"
+											data-toggle="mandate"
+											aria-label="Toggle evaluation split"
+										>
+											<span class="dot"></span>
+										</button>
+										<span class="t-off" data-off="mandate">ホールドアウト</span></span
+									>
+								</div>
+								<div class="plan-price">
+									<span class="cap" id="mandate-cap">開発ベンチマーク分割 (70/30)</span>
+									<span class="amt"
+										><strong id="mandate-amt">GATE</strong><span>/ CIブロック</span></span
+									>
+								</div>
+							</div>
+							<div class="plan-bottom">
+								<h4>継続的品質保証</h4>
+								<ul>
+									<li>ベンチマークスイート (modelrail-eval-v1)</li>
+									<li>5%以上の精度低下でCI自動遮断</li>
+									<li>Prometheusメトリクス &amp; Grafana</li>
+									<li>OpenTelemetry分散トレーススパン</li>
+								</ul>
+								<a href="#quickstart" class="plan-cta">評価ハーネスを確認</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= CASES ================= -->
+			<section class="section" id="cases">
+				<div class="wrap">
+					<div class="eng-head reveal" style="margin-bottom:64px;">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(06) — 信頼性実証ケース</span
+							>
+							<h2>シミュレートされた障害と高負荷下での実証。</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>経験的不変条件テスト</span
+						>
+					</div>
+
+					<div class="cases-grid">
+						<article class="case reveal d1">
+							<div class="case-thumb">
+								<span class="case-tag">障害注入 · サーキット遮断</span>
+								<svg
+									id="viz1"
+									viewBox="0 0 400 250"
+									preserveAspectRatio="none"
+									aria-hidden="true"
+								></svg>
+							</div>
+							<h3>実証 01: プロバイダー障害 &amp; サーキット遮断</h3>
+							<p>
+								プライマリのモックルートに500msのネットワークタイムアウトと503エラーを注入。ModelRailは3回連続の失敗でサーキットブレーカーをOPEN状態に移行し、2ms以内にトラフィックの100%を待機フォールバックへ転送。クライアント側でのエラー発生率は0%を維持。
+							</p>
+							<div class="case-foot">
+								<span class="meta">サーキットブレーカー、自動フェイルオーバー</span>
+								<a href="#quickstart" class="out uline">不変条件テストを確認 →</a>
+							</div>
+						</article>
+
+						<article class="case reveal d2">
+							<div class="case-thumb">
+								<span class="case-tag">並行制御 · 予算競合防止</span>
+								<svg
+									id="viz2"
+									viewBox="0 0 400 250"
+									preserveAspectRatio="none"
+									aria-hidden="true"
+								></svg>
+							</div>
+							<h3>実証 02: 高並行時の予算レースコンディション防止</h3>
+							<p>
+								残り予算$0.05のプロジェクトに対して50件の並行非同期リクエストを一斉送信。2フェーズ予約プロトコルが想定トークンを原子的ロックで引当て、枠を超過したリクエストを429 budget_exceededで安全に拒絶。最終支出額は正確に$0.0500で着地。
+							</p>
+							<div class="case-foot">
+								<span class="meta">アトミックロック、テナントクォータ</span>
+								<a href="#quickstart" class="out uline">並行性テストを確認 →</a>
+							</div>
+						</article>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= QUICKSTART & PLAYGROUND ================= -->
+			<section class="section" id="quickstart">
+				<div class="wrap">
+					<div class="eng-head reveal" style="margin-bottom:48px;">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(07) — 開発者向けクイックスタート</span
+							>
+							<h2>あらゆる環境に即座に導入できるOpenAI完全互換。</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>対話型ゲートウェイ</span
+						>
+					</div>
+
+					<div class="qs-container reveal">
+						<div class="qs-tabs" role="tablist">
+							<button class="qs-tab active" data-tab="curl-sh" role="tab" aria-selected="true">cURL (Linux / macOS)</button>
+							<button class="qs-tab" data-tab="curl-ps" role="tab" aria-selected="false">PowerShell (curl.exe)</button>
+							<button class="qs-tab" data-tab="ps-irm" role="tab" aria-selected="false">PowerShell (Invoke-RestMethod)</button>
+							<button class="qs-tab" data-tab="python" role="tab" aria-selected="false">Python (OpenAI SDK)</button>
+						</div>
+
+						<div class="qs-body">
+							<div class="qs-code-wrap">
+								<div class="qs-code-header">
+									<span class="mono" style="font-size:11px;color:var(--faint);">リクエストターミナル</span>
+									<button class="qs-copy-btn" id="qs-copy-btn" aria-label="Copy code">
+										<span>コピー</span>
+										<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+											<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+											<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+										</svg>
+									</button>
+								</div>
+								<pre class="qs-pre" id="qs-code-display"><code class="mono" id="qs-code-content"></code></pre>
+							</div>
+
+							<div class="qs-sim-panel">
+								<div class="qs-sim-head">
+									<span class="mono" style="font-size:11px;color:var(--cobalt);letter-spacing:0.12em;">ゲートウェイ ライフサイクル シミュレータ</span>
+									<button class="qs-sim-run" id="qs-sim-btn"><span>▶</span> デモシミュレーションを実行</button>
+								</div>
+
+								<div class="sim-cases-wrap">
+									<span class="mono" style="font-size:10px;color:var(--faint);letter-spacing:0.1em;">デモテストケースを選択:</span>
+									<div class="sim-cases-nav" role="tablist">
+										<button class="sim-case-btn active" data-case="happy-path">01 通常ルート</button>
+										<button class="sim-case-btn" data-case="failover">02 障害フェイルオーバー</button>
+										<button class="sim-case-btn" data-case="circuit-breaker">03 サーキットブレーカー</button>
+										<button class="sim-case-btn" data-case="budget-429">04 予算上限 (429)</button>
+										<button class="sim-case-btn" data-case="idempotency">05 冪等性リプレイ</button>
+										<button class="sim-case-btn" data-case="eval-gate">06 CI評価ゲート</button>
+									</div>
+								</div>
+
+								<div class="qs-stepper" id="qs-stepper">
+									<div class="qs-step" data-step="1">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong id="s-title-1">1. 認証 &amp; テナント解決</strong>
+											<span id="s-desc-1">キー検証完了 · プロジェクト: demo-app (fd2a719f)</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="2">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong id="s-title-2">2. 2フェーズ予算予約</strong>
+											<span id="s-desc-2">最大想定消費額 $0.000030 を事前引当 (2,048トークン枠)</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="3">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong id="s-title-3">3. ポリシールーティング &amp; サーキット状態</strong>
+											<span id="s-desc-3">エイリアス: modelrail-fast → 選択: mock-1 (状態: CLOSED)</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="4">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong id="s-title-4">4. プロバイダー実行 &amp; レイテンシ</strong>
+											<span id="s-desc-4">レイテンシ: 22ms · HTTP 200 OK 応答正規化</span>
+										</div>
+									</div>
+									<div class="qs-step" data-step="5">
+										<span class="s-dot"></span>
+										<div class="s-text">
+											<strong id="s-title-5">5. 実トークン精算 &amp; 監査レコード永続化</strong>
+											<span id="s-desc-5">実消費 $0.000018 (28トークン) 精算 · 余剰枠 $0.000012 即時解放</span>
+										</div>
+									</div>
+								</div>
+								<div class="qs-sim-output" id="qs-sim-output">
+									<span class="mono" id="qs-sim-badge" style="font-size:10px;color:var(--faint);">レスポンスペイロード (STATUS 200 OK)</span>
+									<pre class="mono" id="qs-sim-json"></pre>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= FAQ ================= -->
+			<section class="section" id="faq">
+				<div class="wrap">
+					<div class="eng-head reveal" style="margin-bottom:56px;">
+						<div>
+							<span class="idx" style="display:block;margin-bottom:18px;"
+								>(08) — 技術FAQ</span
+							>
+							<h2>エンジニアリング上の保証と設計トレードオフ。</h2>
+						</div>
+						<span class="mono" style="color:var(--faint);font-size:13px;"
+							>アーキテクチャFAQ</span
+						>
+					</div>
+
+					<div class="faq-split">
+						<div class="faq-cta reveal">
+							<h3>信頼性の高いAI基盤をデプロイしませんか？</h3>
+							<p>
+								ModelRailは完全なオープンソースであり、ローカルファーストでDocker Composeを用いて2分以内に起動できます。
+								対話型OpenAPIドキュメントをブラウザで今すぐご確認いただけます。
+							</p>
+							<a href="http://localhost:8000/docs" target="_blank" rel="noopener">ゲートウェイドキュメントを開く (/docs)</a>
+						</div>
+
+						<div class="faq-list reveal d1" id="faq-list">
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>高並行アクセス時にModelRailはどうやって予算超過を防止しますか？</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										ModelRailは厳格な2フェーズ予約プロトコルを実装しています。リクエストを上流プロバイダーへ送信する前に、ポリシーの最大出力トークン数に基づいて最大想定コストを計算し、PostgreSQL/Redis内で不可分に事前予約枠を作成します。プロジェクトの残高がこの予約額を下回る場合、リクエストは即座にHTTP 429 budget_exceededで遮断されます。推論完了後、実際に消費されたトークンのみを精算し、余剰となった予約枠を即座に解放します。
+									</p>
+								</div>
+							</div>
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>有料の外部プロバイダー契約なしで完全オフライン稼働できますか？</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										はい。ModelRailには、設定可能なレイテンシ、ストリーミングチャンク、擬似トークン生成を瞬時に返す決定論的モックプロバイダーと、ローカルオープンソースモデル（Llama 3.1、Mistralなど）を実行できるOllamaアダプターが標準搭載されています。ゲートウェイ、シミュレータ、テストスイート、評価基盤のすべてを、課金や外部APIキー設定なしでローカルPC上で完全再現できます。
+									</p>
+								</div>
+							</div>
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>再試行（リトライ）時にどうやって二重課金や重複計上を防ぎますか？</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										論理リクエストと物理プロバイダー試行を、異なるID（request_id vs attempt_id）を持つ独立エンティティとしてモデル化しています。一時的な5xxエラーやタイムアウトで再試行や別プロバイダーへのフォールバックが発生した場合、各物理試行はそれぞれのレイテンシとステータスで記録されますが、利用量集計および予算精算は、親リクエストの最終成功試行のみに厳格に紐付けられます。
+									</p>
+								</div>
+							</div>
+							<div class="faq-q">
+								<button class="faq-qbtn">
+									<h4>CI上でモデルの品質低下（リグレッション）をどう検知しますか？</h4>
+									<span class="faq-ico"
+										><svg
+											width="18"
+											height="18"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path d="M12 5v14M5 12h14" />
+										</svg></span
+									>
+								</button>
+								<div class="faq-ans">
+									<p>
+										ModelRailは独立した評価フレームワーク（packages/evals）と、Reasoning、Extraction、Instruction Following、Refusalの4分野に分類されたバージョン管理データセット（modelrail-eval-v1）を保持しています。GitHub Actions CIパイプラインはホールドアウト評価セットを自動実行し、ベースラインモデルと比較して通過率が設定閾値（デフォルト5%）を超えて低下した場合、自動的にワークフローを失敗（exit 1）させてリリースをブロックします。
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<!-- ================= BIG CTA ================= -->
+			<section class="section" id="contact">
+				<div class="wrap">
+					<a class="bigcta reveal" href="https://github.com/aravinditte/modelrail" target="_blank" rel="noopener">
+						<h2>ModelRailを起動する</h2>
+						<span class="badge"
+							><svg
+								width="34"
+								height="34"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path d="M5 12h14M12 5l7 7-7 7" />
+							</svg></span
+						>
+					</a>
+				</div>
+			</section>
+		</main>
+
+		<!-- ================= FOOTER ================= -->
+		<footer class="footer">
+			<div class="wrap">
+				<div class="footer-top">
+					<div class="footer-quote">
+						<span class="footer-mark"
+							>MODEL<span class="sep">//</span>RAIL</span
+						>
+						<h5>
+							“検証可能な耐障害性、決定論的な予算管理、そして可観測なLLM運用を求めるエンジニアのために構築された、ローカルファーストのAI推論ゲートウェイおよび信頼性プラットフォーム。”
+						</h5>
+					</div>
+					<div class="footer-news">
+						<h5>The Reliability Dispatch — アーキテクチャ &amp; LLMOps</h5>
+						<form class="news-form" id="news-form" novalidate>
+							<div class="news-field">
+								<input
+									type="text"
+									id="nf-name"
+									placeholder="お名前"
+									autocomplete="name"
+								>
+							</div>
+							<div class="news-field">
+								<input
+									type="email"
+									id="nf-email"
+									placeholder="エンジニアリング用メールアドレス"
+									autocomplete="email"
+								>
+							</div>
+							<button type="submit">ディスパッチを受信登録</button>
+							<span class="news-msg" id="news-msg" aria-live="polite"></span>
+						</form>
+					</div>
+				</div>
+
+				<div class="footer-cols">
+					<div class="fcol">
+						<h6>ゲートウェイ</h6>
+						<a href="#architecture">アーキテクチャ</a><a href="#capabilities">ルーティング &amp; 耐障害性</a
+						><a href="#cases">信頼性実証ケース</a
+						><a href="#metrics">検証済みベンチマーク</a>
+					</div>
+					<div class="fcol">
+						<h6>評価基盤</h6>
+						<a href="#deployments">評価ハーネス</a
+						><a href="#capabilities">ホールドアウト分割</a
+						><a href="#faq">CIリグレッションゲート</a>
+					</div>
+					<div class="fcol">
+						<h6>開発者</h6>
+						<a href="http://localhost:8000/docs" target="_blank" rel="noopener">OpenAPI Swagger (/docs)</a
+						><a href="https://github.com/aravinditte/modelrail" target="_blank" rel="noopener">GitHub リポジトリ</a>
+						<span
+							class="mono"
+							style="display:block;margin-top:22px;color:var(--faint);font-size:10px;"
+							>Docker ローカル起動コマンド</span
+						>
+						<span class="mono" style="color:var(--ivory);font-size:12px;"
+							>docker compose up --build</span
+						>
+					</div>
+				</div>
+
+				<div class="footer-bottom">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M12 3L2 21h20L12 3z" fill-opacity="0.35" />
+					</svg>
+					<div class="legal">
+						<a href="https://github.com/aravinditte/modelrail/blob/main/LICENSE" target="_blank" rel="noopener">MITライセンス</a><span>/</span
+						><a href="#architecture">ローカルファースト設計</a>
+					</div>
+					<span>© 2026 ModelRail AI Systems · オープンソース (MIT) · 東京 / 渋谷 &amp; グローバル</span>
+				</div>
+			</div>
+		</footer>
+
+		<script src="script.js"></script>
+	</body>
+</html>

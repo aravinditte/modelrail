@@ -9,6 +9,9 @@
 			content="ModelRail is a self-hostable, OpenAI-compatible AI inference gateway and reliability platform with dynamic routing, circuit breakers, 2-phase budget reservations, and CI evaluation gates."
 		>
 		<link rel="stylesheet" href="styles.css">
+		<link rel="icon" type="image/svg+xml" href="favicon.svg">
+		<link rel="alternate icon" type="image/png" href="favicon.png">
+		<link rel="shortcut icon" href="favicon.ico">
 	</head>
 	<body>
 		<!-- ================= HEADER ================= -->
@@ -19,37 +22,42 @@
 					<div class="lbl">GATEWAY · LOCAL-FIRST</div>
 					<div id="clock-time">00:00:00</div>
 				</div>
-				<div class="menu-wrap">
-					<button
-						class="menu-btn"
-						id="menu-btn"
-						aria-haspopup="true"
-						aria-expanded="false"
-					>
-						<span>System</span>
-						<svg
-							width="18"
-							height="18"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
+				<div class="header-right">
+					<a href="index-ja.html" class="lang-switch-btn" title="日本語版へ切り替え">
+						<span class="lang-cur">ENG</span><span class="lang-sep">/</span><span class="lang-alt">日本語</span>
+					</a>
+					<div class="menu-wrap">
+						<button
+							class="menu-btn"
+							id="menu-btn"
+							aria-haspopup="true"
+							aria-expanded="false"
 						>
-							<path d="M4 8h16M4 16h16" />
-						</svg>
-					</button>
-					<nav class="dropdown" id="dropdown" aria-label="System Navigation">
-						<a href="#architecture">Architectural Thesis</a>
-						<a href="#capabilities">Routing &amp; Resilience</a>
-						<a href="#metrics">Verified Benchmarks</a>
-						<a href="#deployments">Deployment Models</a>
-						<a href="#cases">Reliability Proofs</a>
-						<a href="#quickstart">Quickstart &amp; API</a>
-						<a href="#faq">Architecture FAQ</a>
-						<hr>
-						<a href="http://localhost:8000/docs" target="_blank" rel="noopener">OpenAPI Docs (/docs) ↗</a>
-						<a href="http://localhost:3000" target="_blank" rel="noopener">Next.js Dashboard ↗</a>
-					</nav>
+							<span>System</span>
+							<svg
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path d="M4 8h16M4 16h16" />
+							</svg>
+						</button>
+						<nav class="dropdown" id="dropdown" aria-label="System Navigation">
+							<a href="#architecture">Architectural Thesis</a>
+							<a href="#capabilities">Routing &amp; Resilience</a>
+							<a href="#metrics">Verified Benchmarks</a>
+							<a href="#deployments">Deployment Models</a>
+							<a href="#cases">Reliability Proofs</a>
+							<a href="#quickstart">Quickstart &amp; API</a>
+							<a href="#faq">Architecture FAQ</a>
+							<hr>
+							<a href="index-ja.html">日本語版 (Japanese) ↗</a>
+							<a href="http://localhost:8000/docs" target="_blank" rel="noopener">OpenAPI Docs (/docs) ↗</a>
+						</nav>
+					</div>
 				</div>
 			</div>
 		</header>
@@ -67,6 +75,16 @@
 								Centralized authentication, multi-tenant isolation, dynamic model routing,
 								hard budget reservations, circuit breakers, and CI-gated regression testing — running completely local-first.
 							</p>
+							<div class="hero-actions">
+								<a href="#quickstart" class="hero-btn primary" id="hero-try-demo-btn">
+									<span>Try Demo Simulator</span>
+									<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+								</a>
+								<a href="http://localhost:8000/docs" target="_blank" rel="noopener" class="hero-btn secondary">
+									<span>API Docs</span>
+									<span class="mono" style="font-size:10px;">(/docs) ↗</span>
+								</a>
+							</div>
 						</div>
 
 						<aside class="ticker-card reveal d2" aria-label="Live gateway telemetry">
@@ -86,8 +104,8 @@
 								<span class="val" id="tc-val">0.00<em>%</em></span>
 								<span class="lab" id="tc-lab">Duplicate Tokens on Retries</span>
 							</div>
-							<a href="#capabilities" class="tc-cta"
-								>Inspect System Architecture <span>→</span></a
+							<a href="#quickstart" class="tc-cta" id="tc-try-demo-btn"
+								>Try Demo Simulator <span>→</span></a
 							>
 						</aside>
 					</div>
@@ -448,7 +466,7 @@
 									<li>PostgreSQL 16 with Alembic migrations</li>
 									<li>Redis 7 for distributed rate limits</li>
 									<li>Two-phase budget reserve &amp; settle</li>
-									<li>Next.js administrative dashboard</li>
+									<li>Centralized administrative controls</li>
 								</ul>
 								<a href="#quickstart" class="plan-cta">Deploy With Compose</a>
 							</div>
@@ -593,47 +611,60 @@
 							<div class="qs-sim-panel">
 								<div class="qs-sim-head">
 									<span class="mono" style="font-size:11px;color:var(--cobalt);letter-spacing:0.12em;">GATEWAY LIFECYCLE SIMULATOR</span>
-									<button class="qs-sim-run" id="qs-sim-btn">Simulate Gateway Request</button>
+									<button class="qs-sim-run" id="qs-sim-btn"><span>▶</span> Try Demo Simulation</button>
 								</div>
+
+								<div class="sim-cases-wrap">
+									<span class="mono" style="font-size:10px;color:var(--faint);letter-spacing:0.1em;">SELECT DEMO TEST CASE:</span>
+									<div class="sim-cases-nav" role="tablist">
+										<button class="sim-case-btn active" data-case="happy-path">01 Normal Route</button>
+										<button class="sim-case-btn" data-case="failover">02 Outage Failover</button>
+										<button class="sim-case-btn" data-case="circuit-breaker">03 Circuit Breaker</button>
+										<button class="sim-case-btn" data-case="budget-429">04 Budget Limit (429)</button>
+										<button class="sim-case-btn" data-case="idempotency">05 Idempotent Replay</button>
+										<button class="sim-case-btn" data-case="eval-gate">06 CI Eval Gate</button>
+									</div>
+								</div>
+
 								<div class="qs-stepper" id="qs-stepper">
 									<div class="qs-step" data-step="1">
 										<span class="s-dot"></span>
 										<div class="s-text">
-											<strong>1. Auth &amp; Tenant Resolution</strong>
-											<span>Key verified · Project: demo-app (fd2a719f)</span>
+											<strong id="s-title-1">1. Auth &amp; Tenant Resolution</strong>
+											<span id="s-desc-1">Key verified · Project: demo-app (fd2a719f)</span>
 										</div>
 									</div>
 									<div class="qs-step" data-step="2">
 										<span class="s-dot"></span>
 										<div class="s-text">
-											<strong>2. Two-Phase Budget Reservation</strong>
-											<span>Reserved $0.000030 (Max 2,048 tokens worst-case)</span>
+											<strong id="s-title-2">2. Two-Phase Budget Reservation</strong>
+											<span id="s-desc-2">Reserved $0.000030 (Max 2,048 tokens worst-case)</span>
 										</div>
 									</div>
 									<div class="qs-step" data-step="3">
 										<span class="s-dot"></span>
 										<div class="s-text">
-											<strong>3. Policy Routing &amp; Circuit Breaker</strong>
-											<span>Alias: modelrail-fast → Selected: mock-1 (Circuit: CLOSED)</span>
+											<strong id="s-title-3">3. Policy Routing &amp; Circuit Breaker</strong>
+											<span id="s-desc-3">Alias: modelrail-fast → Selected: mock-1 (Circuit: CLOSED)</span>
 										</div>
 									</div>
 									<div class="qs-step" data-step="4">
 										<span class="s-dot"></span>
 										<div class="s-text">
-											<strong>4. Provider Execution &amp; Latency</strong>
-											<span>Latency: 22ms · HTTP 200 OK normalized</span>
+											<strong id="s-title-4">4. Provider Execution &amp; Latency</strong>
+											<span id="s-desc-4">Latency: 22ms · HTTP 200 OK normalized</span>
 										</div>
 									</div>
 									<div class="qs-step" data-step="5">
 										<span class="s-dot"></span>
 										<div class="s-text">
-											<strong>5. Settlement &amp; Audit Persistence</strong>
-											<span>Charged $0.000018 (28 tokens) · Surplus $0.000012 released</span>
+											<strong id="s-title-5">5. Settlement &amp; Audit Persistence</strong>
+											<span id="s-desc-5">Charged $0.000018 (28 tokens) · Surplus $0.000012 released</span>
 										</div>
 									</div>
 								</div>
 								<div class="qs-sim-output" id="qs-sim-output">
-									<span class="mono" style="font-size:10px;color:var(--faint);">PAYLOAD RESPONSE (STATUS 200 OK)</span>
+									<span class="mono" id="qs-sim-badge" style="font-size:10px;color:var(--faint);">PAYLOAD RESPONSE (STATUS 200 OK)</span>
 									<pre class="mono" id="qs-sim-json"></pre>
 								</div>
 							</div>
@@ -708,7 +739,7 @@
 								</button>
 								<div class="faq-ans">
 									<p>
-										Yes. ModelRail includes a built-in deterministic Mock Provider that responds instantly with configurable latency, streaming chunks, and simulated token generation, as well as an Ollama adapter for local open-source models (Llama 3.1, Mistral). The entire gateway, dashboard, tests, and evaluation suite run offline on a local laptop without spending a cent.
+										Yes. ModelRail includes a built-in deterministic Mock Provider that responds instantly with configurable latency, streaming chunks, and simulated token generation, as well as an Ollama adapter for local open-source models (Llama 3.1, Mistral). The entire gateway, simulator, tests, and evaluation suite run offline on a local laptop without spending a cent.
 									</p>
 								</div>
 							</div>
@@ -836,7 +867,6 @@
 					<div class="fcol">
 						<h6>Developer</h6>
 						<a href="http://localhost:8000/docs" target="_blank" rel="noopener">OpenAPI Swagger (/docs)</a
-						><a href="http://localhost:3000" target="_blank" rel="noopener">Next.js Dashboard</a
 						><a href="https://github.com/aravinditte/modelrail" target="_blank" rel="noopener">GitHub Repository</a>
 						<span
 							class="mono"

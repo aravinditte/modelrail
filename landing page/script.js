@@ -509,39 +509,225 @@ print(response.choices[0].message.content)`,
 		});
 	}
 
-	/* ---------- Gateway lifecycle simulator ---------- */
+	/* ---------- Gateway lifecycle simulator & demo test cases ---------- */
 	const simBtn = $("#qs-sim-btn");
 	const steps = $$(".qs-step");
 	const simJson = $("#qs-sim-json");
+	const simBadge = $("#qs-sim-badge");
+	const caseBtns = $$(".sim-case-btn");
 
-	const sampleResponse = {
-		id: "chatcmpl-mr_7a4b89ef",
-		object: "chat.completion",
-		created: 1729938120,
-		model: "modelrail-fast",
-		choices: [
-			{
-				index: 0,
-				message: {
-					role: "assistant",
-					content: "ModelRail gateway operational. Provider: mock-1. Latency: 22ms. Duplicate tokens: 0.",
+	const simTestCases = {
+		"happy-path": {
+			badge: "PAYLOAD RESPONSE (STATUS 200 OK)",
+			steps: [
+				{ title: "1. Auth & Tenant Resolution", desc: "Key verified · Project: demo-app (fd2a719f)" },
+				{ title: "2. Two-Phase Budget Reservation", desc: "Reserved $0.000030 (Max 2,048 tokens worst-case)" },
+				{ title: "3. Policy Routing & Circuit Check", desc: "Alias: modelrail-fast → Selected: mock-1 (Circuit: CLOSED)" },
+				{ title: "4. Provider Execution & Latency", desc: "Latency: 22ms · HTTP 200 OK normalized" },
+				{ title: "5. Settlement & Audit Persistence", desc: "Charged $0.000018 (28 tokens) · Surplus $0.000012 released" },
+			],
+			response: {
+				id: "chatcmpl-mr_7a4b89ef",
+				object: "chat.completion",
+				created: 1729938120,
+				model: "modelrail-fast",
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: "ModelRail gateway operational. Provider: mock-1. Latency: 22ms. Duplicate tokens: 0.",
+						},
+						finish_reason: "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: 12,
+					completion_tokens: 16,
+					total_tokens: 28,
 				},
-				finish_reason: "stop",
+				modelrail: {
+					request_id: "req_01jbfa84k9",
+					attempt_id: "att_01jbfa84k9_01",
+					provider: "mock-1",
+					cost_usd: 0.000018,
+					settlement: "settled",
+				},
 			},
-		],
-		usage: {
-			prompt_tokens: 12,
-			completion_tokens: 16,
-			total_tokens: 28,
 		},
-		modelrail: {
-			request_id: "req_01jbfa84k9",
-			attempt_id: "att_01jbfa84k9_01",
-			provider: "mock-1",
-			cost_usd: 0.000018,
-			settlement: "settled",
+		"failover": {
+			badge: "PAYLOAD RESPONSE (STATUS 200 OK — VIA FALLBACK)",
+			steps: [
+				{ title: "1. Auth & Failure Flag Injected", desc: "Key verified · Injected payload: [fail:primary=outage]" },
+				{ title: "2. Two-Phase Budget Reservation", desc: "Reserved $0.000030 on project demo-app" },
+				{ title: "3. Primary Mock Outage Detected", desc: "mock-1 returned HTTP 503 · attempt_01 logged as failed" },
+				{ title: "4. Standby Route Promoted", desc: "Rerouted to mock-secondary in 2ms · attempt_02 succeeded" },
+				{ title: "5. Single-Attempt Settlement", desc: "Charged $0.000022 on attempt_02 · Exactly 0 duplicate billing" },
+			],
+			response: {
+				id: "chatcmpl-mr_98ef1a3c",
+				object: "chat.completion",
+				created: 1729938150,
+				model: "modelrail-resilient",
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: "Fallback response: still works under simulated primary failure.",
+						},
+						finish_reason: "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: 14,
+					completion_tokens: 18,
+					total_tokens: 32,
+				},
+				modelrail: {
+					request_id: "req_01jbfb19x0",
+					attempt_id: "att_01jbfb19x0_02",
+					provider: "mock-secondary",
+					attempts: 2,
+					fallback_reason: "connection:mock",
+					cost_usd: 0.000022,
+					settlement: "settled",
+				},
+			},
+		},
+		"circuit-breaker": {
+			badge: "CIRCUIT STATE EVENT (CIRCUIT BREAKER: OPEN)",
+			steps: [
+				{ title: "1. Failure Counter Threshold", desc: "Primary upstream consecutive 503 failures = 3 (Threshold: 3)" },
+				{ title: "2. Finite-State Transition", desc: "Breaker tripped from CLOSED → OPEN (Degradation confirmed)" },
+				{ title: "3. Fast-Fail Short Circuit", desc: "Subsequent requests bypass failing upstream with 0ms hang" },
+				{ title: "4. Traffic Evacuation", desc: "100% of consumer traffic promoted to standby fallback" },
+				{ title: "5. Telemetry & Transition Event", desc: "Emitted modelrail_circuit_transitions_total{state='open'} +1" },
+			],
+			response: {
+				event: "circuit_breaker_transition",
+				provider: "mock-1",
+				route: "modelrail-fast",
+				state: "OPEN",
+				threshold_failures: 3,
+				cool_down_seconds: 30,
+				subsequent_requests: "routed_to_fallback",
+				telemetry: {
+					metric: "modelrail_circuit_transitions_total",
+					labels: { provider: "mock-1", to_state: "open" },
+					status: "active_protection",
+				},
+			},
+		},
+		"budget-429": {
+			badge: "ERROR ENVELOPE (STATUS 429 TOO MANY REQUESTS)",
+			steps: [
+				{ title: "1. Project Quota Lookup", desc: "Project 'demo-app' balance remaining: $0.000020" },
+				{ title: "2. Concurrency Burst Intercept", desc: "50 parallel async requests competing for budget lock" },
+				{ title: "3. Two-Phase Reservation Attempt", desc: "Request requires worst-case ceiling: $0.000030" },
+				{ title: "4. Quota Enforcement", desc: "Balance insufficient ($0.000020 < $0.000030) · Reservation refused" },
+				{ title: "5. Safe Rejection & Zero Leak", desc: "Rejected with 429 budget_exceeded · Balance remains intact" },
+			],
+			response: {
+				error: {
+					message: "project budget limit exceeded ($0.000020 remaining, $0.000030 required for worst-case reservation)",
+					type: "insufficient_quota",
+					code: "budget_exceeded",
+				},
+				modelrail: {
+					tenant_project_id: "fd2a719f-aaa6-4882-a1cb-5ba12fe33b77",
+					budget_remaining_usd: 0.000020,
+					reservation_requested_usd: 0.000030,
+					over_allocation_prevented: true,
+				},
+			},
+		},
+		"idempotency": {
+			badge: "PAYLOAD RESPONSE (STATUS 200 OK — REPLAYED)",
+			steps: [
+				{ title: "1. Idempotency Header Received", desc: "Header detected: Idempotency-Key: idemp_9f82ab71c0" },
+				{ title: "2. Atomic Ledger Query", desc: "Identified previous successful execution for key" },
+				{ title: "3. Provider Execution Bypassed", desc: "Zero upstream provider calls dispatched" },
+				{ title: "4. Spend Deduplication", desc: "Usage tokens = 0 · Budget deduction = $0.000000" },
+				{ title: "5. Cached Payload Replay", desc: "Returned stored completion with x-modelrail-cached: true" },
+			],
+			response: {
+				id: "chatcmpl-mr_7a4b89ef",
+				object: "chat.completion",
+				created: 1729938120,
+				model: "modelrail-fast",
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: "ModelRail gateway operational. Provider: mock-1. Latency: 22ms. Duplicate tokens: 0.",
+						},
+						finish_reason: "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: 12,
+					completion_tokens: 16,
+					total_tokens: 28,
+				},
+				modelrail: {
+					request_id: "req_01jbfa84k9",
+					idempotent_replay: true,
+					duplicate_charge_prevented: true,
+					cost_usd: 0.0,
+				},
+			},
+		},
+		"eval-gate": {
+			badge: "CI GATE EVALUATION REPORT (RELEASE BLOCKED)",
+			steps: [
+				{ title: "1. Held-Out Evaluation Dataset", desc: "Evaluated 30 held-out items across 4 capability categories" },
+				{ title: "2. Baseline Model Scoring", desc: "mock-good achieved 92.4% aggregate accuracy" },
+				{ title: "3. Candidate Model Scoring", desc: "mock-degraded scored 74.0% aggregate accuracy (-18.4% drop)" },
+				{ title: "4. Threshold Check (< 5% Drop)", desc: "Performance regression delta 18.4% exceeds allowed 5.0%" },
+				{ title: "5. GitHub Actions CI Block", desc: "Gate runner returned exit code 1 · Pull request release blocked" },
+			],
+			response: {
+				gate_verdict: "FAILED",
+				threshold_max_drop: 0.05,
+				actual_drop: 0.184,
+				action: "RELEASE_BLOCKED",
+				category_breakdown: {
+					reasoning: { baseline: 0.94, candidate: 0.72, delta: -0.22, status: "BREACHED" },
+					extraction: { baseline: 0.90, candidate: 0.75, delta: -0.15, status: "BREACHED" },
+					instruction_following: { baseline: 0.93, candidate: 0.78, delta: -0.15, status: "BREACHED" },
+					refusal: { baseline: 0.92, candidate: 0.71, delta: -0.21, status: "BREACHED" },
+				},
+			},
 		},
 	};
+
+	let activeCaseKey = "happy-path";
+	function renderCaseLabels(caseKey) {
+		const c = simTestCases[caseKey];
+		if (!c) return;
+		for (let i = 0; i < 5; i++) {
+			const sTitle = $(`#s-title-${i + 1}`);
+			const sDesc = $(`#s-desc-${i + 1}`);
+			if (sTitle && c.steps[i]) sTitle.textContent = c.steps[i].title;
+			if (sDesc && c.steps[i]) sDesc.textContent = c.steps[i].desc;
+		}
+		if (simBadge) simBadge.textContent = c.badge;
+	}
+
+	caseBtns.forEach((btn) => {
+		btn.addEventListener("click", () => {
+			if (simRunning) return;
+			caseBtns.forEach((b) => b.classList.remove("active"));
+			btn.classList.add("active");
+			activeCaseKey = btn.dataset.case || "happy-path";
+			renderCaseLabels(activeCaseKey);
+			// Reset steps visual state
+			steps.forEach((s) => s.classList.remove("active", "completed"));
+			if (simJson) simJson.textContent = "";
+		});
+	});
 
 	let simRunning = false;
 	if (simBtn) {
@@ -549,7 +735,10 @@ print(response.choices[0].message.content)`,
 			if (simRunning) return;
 			simRunning = true;
 			simBtn.disabled = true;
-			simBtn.textContent = "Executing...";
+			simBtn.innerHTML = "<span>⏳</span> Executing Simulation...";
+
+			const activeCase = simTestCases[activeCaseKey] || simTestCases["happy-path"];
+			renderCaseLabels(activeCaseKey);
 
 			steps.forEach((s) => {
 				s.classList.remove("active", "completed");
@@ -570,16 +759,43 @@ print(response.choices[0].message.content)`,
 					steps[steps.length - 1].classList.remove("active");
 					steps[steps.length - 1].classList.add("completed");
 					if (simJson) {
-						simJson.textContent = JSON.stringify(sampleResponse, null, 2);
+						simJson.textContent = JSON.stringify(activeCase.response, null, 2);
 					}
 					simBtn.disabled = false;
-					simBtn.textContent = "Simulate Gateway Request";
+					simBtn.innerHTML = "<span>▶</span> Try Demo Simulation";
 					simRunning = false;
 				}
 			}
 			advance();
 		});
 	}
+
+	/* ---------- Hero Try Demo Button -> Scroll to Simulator ---------- */
+	function triggerSimulatorFromHero(e) {
+		e.preventDefault();
+		const qs = $("#quickstart");
+		if (qs) {
+			qs.scrollIntoView({ behavior: "smooth", block: "start" });
+			const simPanel = $(".qs-sim-panel");
+			if (simPanel) {
+				simPanel.style.transition = "box-shadow 0.4s ease, border-color 0.4s ease";
+				simPanel.style.boxShadow = "0 0 0 3px rgba(31, 68, 255, 0.45)";
+				setTimeout(() => {
+					simPanel.style.boxShadow = "";
+				}, 2200);
+			}
+			setTimeout(() => {
+				const runBtn = $("#qs-sim-btn");
+				if (runBtn && !runBtn.disabled) {
+					runBtn.click();
+				}
+			}, 750);
+		}
+	}
+	const heroDemoBtn = $("#hero-try-demo-btn");
+	if (heroDemoBtn) heroDemoBtn.addEventListener("click", triggerSimulatorFromHero);
+	const tcDemoBtn = $("#tc-try-demo-btn");
+	if (tcDemoBtn) tcDemoBtn.addEventListener("click", triggerSimulatorFromHero);
 
 	/* ---------- Newsletter form ---------- */
 	const form = $("#news-form"),
