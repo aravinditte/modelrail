@@ -36,7 +36,11 @@ def eligible_routes(db: Session, alias: str, allowed_models: list, streaming: bo
     out = []
     for r in routes:
         caps = r.capabilities or {}
-        if streaming and caps.get("streaming") is False:
+        if isinstance(caps, list):
+            # Legacy/client-supplied list form: ["chat", "streaming"] means
+            # each named capability is supported.
+            caps = {str(c): True for c in caps}
+        if streaming and isinstance(caps, dict) and caps.get("streaming") is False:
             continue
         out.append(r)
     return out
