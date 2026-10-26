@@ -88,10 +88,25 @@ docker compose exec gateway python -m app.seed
 Then send a completion request (replace `YOUR_KEY`):
 
 ```bash
+# On Linux / macOS / Git Bash:
 curl http://localhost:8000/v1/chat/completions \
   -H "Authorization: Bearer YOUR_KEY" -H "Content-Type: application/json" \
   -d '{"model": "modelrail-fast",
        "messages": [{"role": "user", "content": "echo: hello ModelRail"}]}'
+```
+
+```powershell
+# On Windows PowerShell (escape inner quotes for curl.exe with \"):
+curl.exe http://localhost:8000/v1/chat/completions `
+  -H "Authorization: Bearer YOUR_KEY" -H "Content-Type: application/json" `
+  -d '{\"model\": \"modelrail-fast\", \"messages\": [{\"role\": \"user\", \"content\": \"echo: hello ModelRail\"}]}'
+
+# Or using native PowerShell Invoke-RestMethod (no escaping issues):
+Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions `
+  -Method Post `
+  -Headers @{ Authorization = "Bearer YOUR_KEY" } `
+  -ContentType "application/json" `
+  -Body '{"model": "modelrail-fast", "messages": [{"role": "user", "content": "echo: hello ModelRail"}]}'
 ```
 
 ### Compose Profiles

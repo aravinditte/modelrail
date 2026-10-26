@@ -133,10 +133,23 @@ def main() -> None:
     print("ModelRail demo seeded.")
     print(f"  project: {result['project_name']} ({result['project_id']})")
     print(f"  API key (shown once): {result['api_key']}")
+    print("\n  Try (bash / macOS / Linux):")
     print(
-        "  Try: curl http://localhost:8000/v1/chat/completions -H "
+        "    curl http://localhost:8000/v1/chat/completions -H "
         f"'Authorization: Bearer {result['api_key']}' -H 'Content-Type: application/json' "
         "-d '{\"model\": \"modelrail-fast\", \"messages\": [{\"role\": \"user\", \"content\": \"hello\"}]}'"
+    )
+    print("\n  Try (Windows PowerShell curl.exe):")
+    print(
+        "    curl.exe http://localhost:8000/v1/chat/completions -H "
+        f"'Authorization: Bearer {result['api_key']}' -H 'Content-Type: application/json' "
+        "-d '{\\\"model\\\": \\\"modelrail-fast\\\", \\\"messages\\\": [{\\\"role\\\": \\\"user\\\", \\\"content\\\": \\\"hello\\\"}]}'"
+    )
+    print("\n  Try (Windows PowerShell Invoke-RestMethod):")
+    print(
+        "    Invoke-RestMethod -Uri http://localhost:8000/v1/chat/completions -Method Post "
+        f"-Headers @{{ Authorization = 'Bearer {result['api_key']}' }} "
+        "-ContentType 'application/json' -Body '{\"model\": \"modelrail-fast\", \"messages\": [{\"role\": \"user\", \"content\": \"hello\"}]}'"
     )
 
 
