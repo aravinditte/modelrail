@@ -32,7 +32,9 @@ docker compose -f docker-compose.yml -f docker-compose.observability.yml --profi
 ```
 
 Startup order is enforced by healthchecks: gateway and worker wait for
-PostgreSQL and Redis to be healthy.
+PostgreSQL to be healthy (the gateway readiness endpoint checks the
+database only; Redis is provisioned for future use and is not on the
+request path).
 
 ## Health
 
@@ -57,7 +59,10 @@ budget-reconciliation).
 
 - `postgres_data` — authoritative data; back this up, nothing else matters
   for accounting recovery.
-- `redis_data` — transient limiter/coordination state; safe to lose.
+- `redis_data` — reserved for future distributed limiter/coordination
+  state; safe to lose. Note: the current rate limiter is **in-process**
+  (per gateway process) and stores nothing in Redis; budget enforcement is
+  transactional in PostgreSQL and never depends on Redis.
 - `prometheus_data`, `grafana_data`, `tempo_data` — observability only.
 
 ## Troubleshooting

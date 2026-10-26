@@ -4,8 +4,12 @@ Concurrency strategy: the project's Project row is locked with
 SELECT ... FOR UPDATE inside the reservation transaction (PostgreSQL), and a
 per-project in-process lock serialises the same critical section for the
 SQLite demo/test configuration. Committed spend = settled reservations +
-still-reserved amounts; a new reservation that would exceed the hard budget
-is rejected BEFORE any provider call. No check-then-write without the lock.
+still-reserved amounts + reservations parked as reconciliation_needed
+(counted at their full reserved amount until reconciliation resolves them:
+their true cost is unknown, so releasing the capacity early would let a
+project overspend on the failure path). A new reservation that would exceed
+the hard budget is rejected BEFORE any provider call. No check-then-write
+without the lock.
 
 Settlement is idempotent per reservation; usage events are idempotent per
 event_key (unique constraint + insert-or-ignore semantics in usage.py).
@@ -44,7 +48,7 @@ def committed_amount(db: Session, project_id: str) -> Decimal:
     reserved = db.execute(
         select(func.coalesce(func.sum(BudgetReservation.reserved_amount), 0)).where(
             BudgetReservation.project_id == project_id,
-            BudgetReservation.status == "reserved",
+            BudgetReservation.status.in_(["reserved", "reconciliation_needed"]),
         )
     ).scalar_one()
     return Decimal(str(settled)) + Decimal(str(reserved))

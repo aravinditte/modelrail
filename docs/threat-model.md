@@ -47,8 +47,11 @@ data stores (network-local in Compose).
 - **Prompt injection:** cannot be fully prevented; ModelRail's defence is
   blast-radius control (no automatic execution, tenant isolation, budgets).
 - **Sensitive-data disclosure by a model:** mitigated by not logging payloads
-  by default, optional tested PII redaction, and disclosure checks in the
-  evaluation set — automated checks are labelled as partial.
+  by default and by disclosure checks in the evaluation set — automated
+  checks are labelled as partial. **PII redaction of model output is NOT
+  implemented in this release** (an earlier draft of this document claimed
+  an "optional tested PII redaction"; that control does not exist in the
+  code and is listed here as a known gap, not a mitigation).
 - **Untrusted structured output:** always schema-validated before use.
 - **Evaluation over-claiming:** benchmark/evaluation reports must record
   versions and environment and must not state unmeasured results (§13, §21).

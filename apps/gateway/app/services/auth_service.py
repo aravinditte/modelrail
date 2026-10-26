@@ -65,11 +65,16 @@ class AdminPrincipal:
     def check_org(self, organization_id: str | None) -> None:
         if self.role == "admin":
             return
-        if (
-            self.organization_id is not None
-            and organization_id is not None
-            and self.organization_id != organization_id
-        ):
+        if self.organization_id is None:
+            # A non-admin identity with no organization scope must NOT fall
+            # through to global access (fail closed).
+            raise err(
+                403,
+                "organization_scope_required",
+                "this identity has no organization scope; access denied",
+                "authentication_error",
+            )
+        if organization_id is not None and self.organization_id != organization_id:
             raise err(
                 403,
                 "cross_tenant_forbidden",

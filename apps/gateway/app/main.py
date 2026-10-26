@@ -6,6 +6,7 @@ import time
 import uuid
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, PlainTextResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
@@ -13,7 +14,7 @@ from .api.admin.routes import router as admin_router
 from .api.public.routes import router as public_router
 from .config import get_settings
 from .core.errors import GatewayError
-from .core.logging_config import get_logger, request_id_var, setup_logging
+from .core.logging_config import get_logger, request_id_var, setup_logging, trace_id_var
 from .db.session import init_db
 from .telemetry.tracing import setup_tracing
 
@@ -32,6 +33,17 @@ async def request_context_and_limits(request: Request, call_next):
     settings = get_settings()
     request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
     token = request_id_var.set(request_id)
+    # Populate the log trace_id from the active OTEL span when tracing is
+    # enabled; without a span it stays empty rather than being fabricated.
+    trace_token = None
+    try:
+        from opentelemetry import trace as _otel_trace
+
+        _ctx = _otel_trace.get_current_span().get_span_context()
+        if _ctx and _ctx.is_valid:
+            trace_token = trace_id_var.set(format(_ctx.trace_id, "032x"))
+    except Exception:
+        trace_token = None
     started = time.monotonic()
     try:
         content_length = request.headers.get("content-length")
@@ -55,11 +67,46 @@ async def request_context_and_limits(request: Request, call_next):
         return response
     finally:
         request_id_var.reset(token)
+        if trace_token is not None:
+            trace_id_var.reset(trace_token)
 
 
 @app.exception_handler(GatewayError)
 async def gateway_error_handler(request: Request, exc: GatewayError):
     return JSONResponse(status_code=exc.status_code, content=exc.envelope())
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(request: Request, exc: RequestValidationError):
+    """All validation failures use the standard error envelope (spec 6.1).
+    Unknown/unsupported fields get their own stable code so clients can
+    distinguish them from malformed values."""
+    errors = exc.errors()
+    unsupported = [e for e in errors if e.get("type") == "extra_forbidden"]
+    if unsupported:
+        fields = ", ".join(str(e.get("loc", ["?"])[-1]) for e in unsupported)
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "message": f"unsupported field(s): {fields}",
+                    "type": "invalid_request_error",
+                    "code": "unsupported_field",
+                }
+            },
+        )
+    first = errors[0] if errors else {}
+    loc = ".".join(str(p) for p in first.get("loc", []))
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "message": f"request validation failed at {loc}: {first.get('msg', 'invalid')}",
+                "type": "invalid_request_error",
+                "code": "validation_error",
+            }
+        },
+    )
 
 
 @app.exception_handler(Exception)
@@ -86,4 +133,14 @@ app.include_router(admin_router)
 def _startup():
     init_db()
     setup_tracing(app)
+    settings = get_settings()
+    if (
+        settings.admin_token == "dev-admin-token-change-me"
+        or settings.api_key_pepper == "dev-pepper-change-me"
+    ):
+        log.warning(
+            "SECURITY: built-in default admin token and/or API-key pepper are in use. "
+            "Set ADMIN_TOKEN and MODELRAIL_API_KEY_PEPPER to unique random values "
+            "before exposing this gateway beyond a local demo."
+        )
     log.info("modelrail gateway started")

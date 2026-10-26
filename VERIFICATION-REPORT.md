@@ -12,11 +12,13 @@ Item-by-item verification against the specification's acceptance criteria
   breaker, deadline, streaming semantics), threaded concurrency (budget
   over-allocation), evaluation framework (18 tests).
 - **Coverage: 85%** total across `apps/gateway/app` + `packages/evals`
-  (gateway service 93%, routing 84%, budget 79%, providers 78–95%).
+  (gateway service 93%, routing 81–84%, budget 79% at first verification —
+  91% after the fix round below; providers 78–95%).
   The spec's ≥80% target for domain/routing/policy/metering code is met in
-  aggregate; `budget.py` alone measures 79% and `telemetry/tracing.py` 30%
-  (OTLP disabled by default) — reported, not hidden.
-- Lint: `ruff check` and `ruff format --check` clean.
+  aggregate; `telemetry/tracing.py` measures 30% (OTLP disabled by
+  default) — reported, not hidden.
+- Lint: `ruff check` clean; `ruff format --check` initially FAILED on the
+  two `migrations/` files (corrected in the fix round below).
 - Alembic: `alembic upgrade head` creates all 13 application tables
   (verified on SQLite). **PostgreSQL execution was NOT verified on this VM**
   (no PostgreSQL available); CI runs migrations + tests against
@@ -65,6 +67,54 @@ Item-by-item verification against the specification's acceptance criteria
 - Evaluation worker as a separate process picked up a queued
   (`run_async`) evaluation and completed it; gate correctly failed the
   degraded candidate.
+
+## Post-verification fix round (2026-10-26, after independent double audit)
+
+Two independent audits (static + behavioral) reproduced every behavioral
+claim above but found gaps the suite had not asserted. Confirmed findings
+were fixed and re-verified; the suite is now **180 tests, all passing**
+(three consecutive runs), coverage 85% total, budget.py 91%, routing.py 84%:
+
+1. **Budget invariant hole (fixed):** reservations parked as
+   `reconciliation_needed` stopped counting against the hard budget, so a
+   project could overspend on the failure path. `committed_amount()` now
+   counts parked reservations at full reserved amount until reconciliation
+   resolves them. Regression test:
+   `tests/integration/test_audit_fixes.py`.
+2. **Capabilities shape crash (fixed):** the dashboard sent `capabilities`
+   as a string array while routing expected a dict. The dashboard now sends
+   a dict, the admin API normalises list input to dict form, and routing
+   tolerates legacy list values.
+3. **Tenant scoping (fixed):** org-less non-admin identities now fail
+   closed in `check_org` (previously global access); `GET /admin/v1/usage`
+   without a project filter now returns only the caller's organization's
+   projects (previously platform totals and all budgets).
+4. **Dead configuration (fixed):** all documented `.env.example` variables
+   now bind to real Settings fields (timeouts, deadline, attempt ceiling,
+   evaluation-job deadline — now enforced between evaluation phases —
+   pricing version, currency). `docker-compose.yml` and `.env.example`
+   DATABASE_URL corrected from `asyncpg` to the sync `psycopg` driver the
+   gateway actually uses.
+5. **Error contract (fixed):** validation failures now return the standard
+   error envelope (422, `unsupported_field` / `validation_error`) instead of
+   FastAPI's default body; docs and schema comments corrected to match.
+   Streaming responses no longer carry an empty `x-request-id` header.
+6. **Docs honesty (fixed):** threat model no longer claims a nonexistent
+   "tested PII redaction" (now listed as a known gap); operations docs no
+   longer claim Redis holds limiter state (limiter is in-process; budget
+   enforcement is DB-transactional). The gateway now logs a SECURITY
+   warning at startup when built-in default secrets are in use.
+7. **CI (fixed, in the zip's ci.yml):** coverage gate raised 70 → 80 and
+   ruff scopes extended to `migrations/` (both migrations files are now
+   format-clean). NOTE: `ci.yml` itself still cannot be uploaded through
+   the Muse GitHub App (Workflows permission) — add it manually.
+
+Still open (unchanged, documented in README): PostgreSQL/Docker/real
+Ollama unverified from this VM; Redis-backed distributed limiter not
+implemented; dataset has no dev/held-out split field; OTEL spans cover the
+request umbrella + provider attempts (finer stage spans not instrumented);
+log `trace_id` is now populated from the active OTEL span when tracing is
+enabled.
 
 ## Known limitations (also in README)
 

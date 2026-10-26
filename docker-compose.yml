@@ -14,7 +14,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://modelrail:modelrail-local-only@postgres:5432/modelrail}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://modelrail:modelrail-local-only@postgres:5432/modelrail}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       MODELRAIL_API_KEY_PEPPER: ${MODELRAIL_API_KEY_PEPPER:-}
@@ -43,7 +43,7 @@ services:
       context: .
       dockerfile: apps/evaluation-worker/Dockerfile
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://modelrail:modelrail-local-only@postgres:5432/modelrail}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://modelrail:modelrail-local-only@postgres:5432/modelrail}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       MODELRAIL_API_KEY_PEPPER: ${MODELRAIL_API_KEY_PEPPER:-}
     depends_on:

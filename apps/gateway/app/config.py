@@ -30,11 +30,25 @@ class Settings(BaseSettings):
     allow_private_provider_urls: bool = False
     mock_scripted_json: str | None = None  # JSON map for [[script:KEY]] responses
 
-    # Reliability defaults
-    provider_connect_timeout_s: float = 3.0
-    provider_request_timeout_s: float = 30.0
-    request_deadline_s: float = 60.0
-    max_total_attempts: int = 4
+    # Reliability defaults. The long env names are the documented ones from
+    # .env.example (spec section 20 workflow); they MUST bind — silently
+    # ignored tuning variables are a safety bug, not a cosmetic one.
+    provider_connect_timeout_s: float = Field(
+        default=3.0,
+        validation_alias=AliasChoices("PROVIDER_CONNECT_TIMEOUT_SECONDS", "provider_connect_timeout_s"),
+    )
+    provider_request_timeout_s: float = Field(
+        default=30.0,
+        validation_alias=AliasChoices("PROVIDER_REQUEST_TIMEOUT_SECONDS", "provider_request_timeout_s"),
+    )
+    request_deadline_s: float = Field(
+        default=60.0, validation_alias=AliasChoices("OVERALL_REQUEST_DEADLINE_SECONDS", "request_deadline_s")
+    )
+    #: Total attempt ceiling for one logical request, across retries AND
+    #: fallbacks (bound by .env.example's RETRY_MAX_ATTEMPTS).
+    max_total_attempts: int = Field(
+        default=4, validation_alias=AliasChoices("RETRY_MAX_ATTEMPTS", "max_total_attempts")
+    )
     retry_base_delay_s: float = 0.05
     retry_max_delay_s: float = 2.0
     circuit_failure_threshold: int = 5
@@ -43,12 +57,21 @@ class Settings(BaseSettings):
     # Governance defaults
     max_request_bytes: int = 256_000
     default_max_output_tokens: int = 1024
-    pricing_version: str = "price-v1"
+    pricing_version: str = Field(
+        default="price-v1", validation_alias=AliasChoices("PRICING_VERSION", "pricing_version")
+    )
+    default_currency: str = Field(
+        default="USD", validation_alias=AliasChoices("DEFAULT_CURRENCY", "default_currency")
+    )
     stale_reservation_s: int = 600
 
     # Evaluations
     eval_dataset_path: str = "packages/evals/datasets/modelrail-eval-v1.jsonl"
     eval_package_path: str = "packages/evals"
+    evaluation_job_deadline_s: float = Field(
+        default=900.0,
+        validation_alias=AliasChoices("EVALUATION_JOB_DEADLINE_SECONDS", "evaluation_job_deadline_s"),
+    )
 
     otel_endpoint: str | None = Field(
         default=None, validation_alias=AliasChoices("OTEL_ENDPOINT", "OTEL_EXPORTER_OTLP_ENDPOINT")
