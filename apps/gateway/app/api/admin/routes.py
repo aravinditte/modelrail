@@ -10,6 +10,7 @@ creation.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import func, select
@@ -337,22 +338,44 @@ def update_policy(policy_id: str, body: PolicyUpdate, request: Request, db: Sess
 @router.get("/usage")
 def usage(request: Request, db: Session = Depends(db_session), project_id: str | None = None):
     who = principal(request, db)
+    # Tenant scoping: a global admin (or bootstrap) sees platform-wide data.
+    # Any other identity sees ONLY its own organization's projects — never
+    # platform totals or other tenants' budgets. Unscoped non-admin
+    # identities fail closed (empty result).
     if project_id:
         _get_project_scoped(db, who, project_id)
+        allowed_projects: set[str] | None = {project_id}
+    elif who.role == "admin":
+        allowed_projects = None
+    elif who.organization_id is not None:
+        allowed_projects = {
+            p.id
+            for p in db.execute(select(Project).where(Project.organization_id == who.organization_id))
+            .scalars()
+            .all()
+        }
+    else:
+        allowed_projects = set()
     base = select(
         UsageEvent.request_id,
         func.sum(UsageEvent.input_tokens),
         func.sum(UsageEvent.output_tokens),
         func.sum(UsageEvent.cost),
     )
-    totals_row = db.execute(base).one()
     by_request: dict[str, dict] = {}
     project_by_request = dict(db.execute(select(LogicalRequest.id, LogicalRequest.project_id)).all())
     alias_by_request = dict(db.execute(select(LogicalRequest.id, LogicalRequest.model_alias)).all())
+    tot_in = tot_out = 0
+    tot_cost = Decimal("0")
+    scoped_request_ids: set[str] = set()
     for req_id, in_t, out_t, cost in db.execute(base.group_by(UsageEvent.request_id)).all():
         pid = project_by_request.get(req_id)
-        if project_id and pid != project_id:
+        if allowed_projects is not None and pid not in allowed_projects:
             continue
+        scoped_request_ids.add(req_id)
+        tot_in += int(in_t or 0)
+        tot_out += int(out_t or 0)
+        tot_cost += Decimal(str(cost or 0))
         for bucket_key, bucket in (("by_project", pid), ("by_model", alias_by_request.get(req_id))):
             if bucket is None:
                 continue
@@ -373,8 +396,8 @@ def usage(request: Request, db: Session = Depends(db_session), project_id: str |
             entry["cost"] = str(float(entry["cost"]) + float(cost or 0))
     budgets = []
     policy_query = select(Policy)
-    if project_id:
-        policy_query = policy_query.where(Policy.project_id == project_id)
+    if allowed_projects is not None:
+        policy_query = policy_query.where(Policy.project_id.in_(allowed_projects))
     for policy in db.execute(policy_query).scalars().all():
         settled = db.execute(
             select(func.coalesce(func.sum(BudgetReservation.settled_amount), 0)).where(
@@ -383,7 +406,8 @@ def usage(request: Request, db: Session = Depends(db_session), project_id: str |
         ).scalar_one()
         reserved = db.execute(
             select(func.coalesce(func.sum(BudgetReservation.reserved_amount), 0)).where(
-                BudgetReservation.project_id == policy.project_id, BudgetReservation.status == "reserved"
+                BudgetReservation.project_id == policy.project_id,
+                BudgetReservation.status.in_(["reserved", "reconciliation_needed"]),
             )
         ).scalar_one()
         pending = db.execute(
@@ -410,10 +434,10 @@ def usage(request: Request, db: Session = Depends(db_session), project_id: str |
         )
     return {
         "totals": {
-            "requests_with_usage": len({r for r in project_by_request}),
-            "input_tokens": int(totals_row[1] or 0),
-            "output_tokens": int(totals_row[2] or 0),
-            "cost": str(totals_row[3] or 0),
+            "requests_with_usage": len(scoped_request_ids),
+            "input_tokens": tot_in,
+            "output_tokens": tot_out,
+            "cost": str(tot_cost),
         },
         "breakdown": sorted(by_request.values(), key=lambda e: (e["scope"], e["id"])),
         "budgets": budgets,
