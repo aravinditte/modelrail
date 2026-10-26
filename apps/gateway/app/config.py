@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +14,17 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./modelrail.db"
     redis_url: str | None = None
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def _normalize_database_url(cls, v: str | None) -> str:
+        if not v:
+            return "sqlite:///./modelrail.db"
+        if v.startswith("postgres://"):
+            return "postgresql+psycopg://" + v[len("postgres://"):]
+        if v.startswith("postgresql://") and not v.startswith("postgresql+"):
+            return "postgresql+psycopg://" + v[len("postgresql://"):]
+        return v
 
     # Bootstrap admin identity (hashed in-memory compare; real admins live in DB)
     admin_token: str = "dev-admin-token-change-me"

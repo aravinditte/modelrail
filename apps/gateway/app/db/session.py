@@ -17,6 +17,10 @@ def get_engine():
     global _engine, _Session
     if _engine is None:
         url = get_settings().database_url
+        if url.startswith("postgres://"):
+            url = "postgresql+psycopg://" + url[len("postgres://"):]
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+            url = "postgresql+psycopg://" + url[len("postgresql://"):]
         connect_args = {"check_same_thread": False, "timeout": 30} if url.startswith("sqlite") else {}
         _engine = create_engine(url, connect_args=connect_args, pool_pre_ping=True, future=True)
         if url.startswith("sqlite"):
