@@ -34,9 +34,8 @@ Unknown fields are **not** silently ignored:
 
 | Case | Behaviour |
 |---|---|
-| Unknown top-level field | `400` with error code `unknown_field`, naming the field |
-| Known OpenAI field unsupported by ModelRail | `400` `unsupported_parameter` |
-| Known field unsupported by the selected route's capabilities | `400` `unsupported_parameter`, naming the capability |
+| Unknown or unsupported top-level field | `422` in the standard error envelope with code `unsupported_field`, naming the field |
+| Other malformed values (wrong type, out of range) | `422` in the standard error envelope with code `validation_error` |
 | Field that would materially change model behaviour | Never dropped silently — either honoured or rejected as above |
 
 ## Error format
