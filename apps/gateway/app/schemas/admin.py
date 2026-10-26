@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+def _normalise_capabilities(value):
+    """Accept the dict form ({"streaming": true}) or a list of capability
+    names (["chat", "streaming"]); always store the dict form so routing
+    never has to guess the shape."""
+    if isinstance(value, list):
+        return {str(v): True for v in value}
+    return value
 
 
 class ModelRouteIn(BaseModel):
@@ -14,6 +23,12 @@ class ModelRouteIn(BaseModel):
     upstream_model: str = Field(min_length=1, max_length=200)
     priority: int = 100
     capabilities: dict = Field(default_factory=lambda: {"streaming": True})
+
+    @field_validator("capabilities", mode="before")
+    @classmethod
+    def _caps(cls, v):
+        return _normalise_capabilities(v)
+
     enabled: bool = True
     configuration: dict = Field(default_factory=dict)
     input_price_per_token: float = 0.0
@@ -28,6 +43,12 @@ class ModelRouteUpdate(BaseModel):
     upstream_model: str | None = None
     priority: int | None = None
     capabilities: dict | None = None
+
+    @field_validator("capabilities", mode="before")
+    @classmethod
+    def _caps(cls, v):
+        return _normalise_capabilities(v)
+
     enabled: bool | None = None
     configuration: dict | None = None
     input_price_per_token: float | None = None
