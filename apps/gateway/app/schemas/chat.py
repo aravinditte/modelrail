@@ -1,8 +1,10 @@
 """Public API schemas.
 
 Unknown-field handling (spec 6.1): request fields outside the supported set
-are REJECTED with a 400 unsupported_field error — never silently ignored,
-because several of them would materially change model behaviour.
+are REJECTED with a 422 response in the standard error envelope with code
+``unsupported_field`` (see the RequestValidationError handler in main.py) —
+never silently ignored, because several of them would materially change
+model behaviour.
 """
 
 from __future__ import annotations
