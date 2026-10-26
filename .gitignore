@@ -26,6 +26,8 @@ yarn-error.log*
 
 # Databases and local data
 *.db
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
 postgres_data/

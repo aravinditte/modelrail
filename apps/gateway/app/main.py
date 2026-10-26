@@ -120,6 +120,19 @@ async def unhandled_error_handler(request: Request, exc: Exception):
     )
 
 
+@app.get("/")
+def root():
+    return {
+        "service": "modelrail-gateway",
+        "version": "1.0.0",
+        "status": "running",
+        "docs_url": "/docs",
+        "openapi_url": "/openapi.json",
+        "health_url": "/health/ready",
+        "models_url": "/v1/models",
+    }
+
+
 @app.get("/metrics")
 def metrics_endpoint():
     return PlainTextResponse(generate_latest().decode(), media_type=CONTENT_TYPE_LATEST)

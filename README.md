@@ -125,9 +125,12 @@ alembic upgrade head
 
 # 5. Start the gateway server
 uvicorn app.main:app --app-dir apps/gateway --port 8000
+# -> Gateway status & links: http://localhost:8000/
+# -> Interactive OpenAPI docs: http://localhost:8000/docs
 
-# 6. In a separate terminal (with environment set), seed demo data and print API key:
-python -m app.seed
+# 6. In a separate terminal (with venv activated), seed demo data and print API key:
+python seed.py
+# (or: python -m app.seed)
 ```
 
 ## Repository layout

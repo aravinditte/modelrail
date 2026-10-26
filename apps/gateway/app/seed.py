@@ -7,13 +7,24 @@ Idempotent for org/project/routes; a fresh key is minted on each run.
 from __future__ import annotations
 
 from decimal import Decimal
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .core.security import generate_api_key
-from .db.models import ApiKey, ModelRoute, Organization, Policy, Project
-from .db.session import get_session_factory, init_db
+if __package__ is None or __package__ == "":
+    import sys
+
+    _gateway_dir = Path(__file__).resolve().parent.parent
+    if str(_gateway_dir) not in sys.path:
+        sys.path.insert(0, str(_gateway_dir))
+    from app.core.security import generate_api_key
+    from app.db.models import ApiKey, ModelRoute, Organization, Policy, Project
+    from app.db.session import get_session_factory, init_db
+else:
+    from .core.security import generate_api_key
+    from .db.models import ApiKey, ModelRoute, Organization, Policy, Project
+    from .db.session import get_session_factory, init_db
 
 MOCK_IN = Decimal("0.000001")  # $1 per 1M input tokens (simulated pricing)
 MOCK_OUT = Decimal("0.000002")

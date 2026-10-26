@@ -44,5 +44,9 @@ filterwarnings = ["ignore::DeprecationWarning"]
 line-length = 110
 target-version = "py312"
 
-[tool.setuptools]
-packages = []
+[tool.setuptools.package-dir]
+"" = "apps/gateway"
+modelrail_evals = "packages/evals/modelrail_evals"
+
+[tool.setuptools.packages.find]
+where = ["apps/gateway", "packages/evals"]
