@@ -70,6 +70,9 @@ async def chat_completions(
     _, project, policy = authenticate_api_key(db, _extract_key(request))
     if payload.stream:
         generator = stream_chat(db, project, policy, payload)
-        return StreamingResponse(generator, media_type="text/event-stream", headers={"x-request-id": ""})
+        # No x-request-id header here: the logical request ID is created
+        # inside the generator and travels in the SSE chunks; the HTTP
+        # middleware supplies the transport-level correlation header.
+        return StreamingResponse(generator, media_type="text/event-stream")
     result = await execute_chat(db, project, policy, payload, idempotency_key=idempotency_key)
     return JSONResponse(content=result, headers={"x-request-id": result["modelrail"]["request_id"]})
