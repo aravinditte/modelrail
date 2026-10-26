@@ -36,8 +36,8 @@ inference; an OpenAI-compatible remote adapter stays disabled until you configur
   for requests/attempts/retries/fallbacks/circuit breakers/tokens/cost, OpenTelemetry tracing
   (optional OTLP export to Tempo via the observability compose overlay).
 - **Evaluation framework** — a versioned 100-case dataset (extraction, instruction-following,
-  classification, safety), task-specific metrics, baseline-vs-candidate reports, and a CI
-  **regression gate** that a deliberately degraded configuration demonstrably fails.
+  classification, safety) with dev / held-out split, task-specific metrics, baseline-vs-candidate reports,
+  and a CI **regression gate** that a deliberately degraded configuration demonstrably fails.
 - **Admin dashboard** — Next.js UI for models/routes, projects/keys, policies, request and
   attempt timelines, usage/budgets, and evaluation reports.
 
@@ -74,11 +74,18 @@ git clone https://github.com/aravinditte/modelrail.git
 cd modelrail
 cp .env.example .env
 docker compose up --build -d
+
+# Apply database migrations
+docker compose exec gateway alembic upgrade head
+
+# Verify gateway readiness
 curl http://localhost:8000/health/ready
-docker compose exec gateway python -m app.seed     # prints a demo API key once
+
+# Seed demo data and print API key (shown once)
+docker compose exec gateway python -m app.seed
 ```
 
-Then (replace `YOUR_KEY`):
+Then send a completion request (replace `YOUR_KEY`):
 
 ```bash
 curl http://localhost:8000/v1/chat/completions \
@@ -87,28 +94,57 @@ curl http://localhost:8000/v1/chat/completions \
        "messages": [{"role": "user", "content": "echo: hello ModelRail"}]}'
 ```
 
-Dashboard: `docker compose --profile dashboard up -d` → http://localhost:3000
-Observability: add `-f docker-compose.observability.yml --profile observability`.
+### Compose Profiles
+
+- **Dashboard UI:** `docker compose --profile dashboard up -d` → http://localhost:3000
+- **Full Observability:** `docker compose -f docker-compose.yml -f docker-compose.observability.yml --profile observability up -d`
+- **Test Runner:** `docker compose --profile test up --abort-on-container-exit`
+- **Local Ollama:** `docker compose --profile ollama up -d`
 
 ## Quick start (local Python, no Docker)
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
+# 1. Create and activate virtual environment
+python3 -m venv .venv && source .venv/bin/activate
+# On Windows PowerShell: python -m venv .venv; .venv\Scripts\Activate.ps1
+
+# 2. Install package in editable mode with development dependencies
 pip install -e ".[dev]"
-export DATABASE_URL="sqlite:///./modelrail.db" ADMIN_TOKEN="dev-admin"   # PowerShell: $env:DATABASE_URL=...
-uvicorn app.main:app --app-dir apps/gateway --port 8000 &
-python -m app.seed    # with PYTHONPATH=apps/gateway
+
+# 3. Configure environment variables
+export DATABASE_URL="sqlite:///./modelrail.db"
+export ADMIN_TOKEN="dev-admin"
+export PYTHONPATH="apps/gateway:packages/evals"
+# On Windows PowerShell:
+# $env:DATABASE_URL="sqlite:///./modelrail.db"
+# $env:ADMIN_TOKEN="dev-admin"
+# $env:PYTHONPATH="apps/gateway;packages/evals"
+
+# 4. Apply database migrations
+alembic upgrade head
+
+# 5. Start the gateway server
+uvicorn app.main:app --app-dir apps/gateway --port 8000
+
+# 6. In a separate terminal (with environment set), seed demo data and print API key:
+python -m app.seed
 ```
 
 ## Repository layout
 
-`apps/gateway` (FastAPI modular monolith) · `apps/dashboard` (Next.js admin UI) ·
-`apps/evaluation-worker` · `packages/evals` (dataset, metrics, runner, gate) ·
-`tests/` (unit, integration, contract, security, resilience, concurrency, evals) ·
-`infra/` (Prometheus/Grafana/Tempo/OTel configs) · `docs/` (architecture, ADRs, API,
-runbooks, threat model, benchmark methodology) · `benchmarks/` (k6 profile + results).
+- `apps/gateway` — FastAPI modular monolith (public inference API, admin API, providers, routing, budget engine)
+- `apps/dashboard` — Next.js 15 administration interface with shadcn/ui components
+- `apps/evaluation-worker` — Asynchronous benchmark and evaluation worker process
+- `packages/evals` — Versioned benchmark dataset, quality metrics, evaluation runner, and CI regression gate
+- `packages/shared-schemas` — Shared cross-component schema definitions
+- `tests/` — Test suites (`unit`, `integration`, `contract`, `security`, `resilience`, `concurrency`, `evals`, `load`)
+- `infra/` — Docker Compose profiles (`infra/compose/`), Prometheus, Grafana, Tempo, and OTel collector configurations
+- `docs/` — Architecture specifications, ADRs, public and admin API reference, operational runbooks, and threat model
+- `benchmarks/` — k6 gateway load profiles and reproducible local benchmark results
 
 ## Testing
+
+Using `make`:
 
 ```bash
 make test          # full pytest suite
@@ -116,24 +152,38 @@ make eval          # run the evaluation framework (good configuration)
 make eval-gate     # baseline vs degraded must FAIL; baseline vs baseline must pass
 ```
 
+Or using `pytest` and `python` directly:
+
+```bash
+# Full test suite with coverage
+pytest --cov=apps/gateway/app --cov=packages/evals/modelrail_evals --cov-fail-under=80 -v
+
+# Run the evaluation benchmark
+python -m modelrail_evals.runner --dataset packages/evals/datasets/modelrail-eval-v1.jsonl --mode good --out reports/eval-good.json
+
+# Run regression gate verification
+python -m modelrail_evals.gate --baseline reports/eval-good.json --candidate reports/eval-good.json
+```
+
 The suite includes: provider contract tests for all three adapters, tenant-isolation and
 key-lifecycle security tests, **100 deterministic injected-failure scenarios**, a threaded
 concurrency test proving budget reservations cannot over-allocate, Hypothesis property
-tests for cost/idempotency invariants, and an OpenAI-SDK compatibility test.
+tests for cost/idempotency invariants, automated load and latency tests, and an OpenAI-SDK compatibility test.
 
 ## Benchmarks
 
 Load profile and methodology: [docs/benchmark-methodology.md](docs/benchmark-methodology.md).
-Measured results are recorded in [docs/benchmark-results/](docs/benchmark-results/) with the
-environment, commit and configuration for each run. Targets (25 rps sustained, p95 gateway
-overhead < 150 ms) are **targets, not claims** — see the results files for what was actually
-measured and where.
+Measured results are recorded in [benchmarks/README.md](benchmarks/README.md) and
+[docs/benchmark-results/](docs/benchmark-results/) with the environment, commit and configuration for each run.
+Targets (25 rps sustained, 50 concurrent, p95 gateway overhead < 150 ms) are **targets, not claims** — see
+the results files for what was actually measured.
 
 ## Demonstrations
 
-Three reproducible demos are scripted in `docs/demos.md` (provider failure & recovery with
-fallback + circuit breaker; two-tenant budget enforcement under concurrency; an LLM quality
-regression caught by the CI gate).
+Three reproducible demos are scripted in [docs/demos.md](docs/demos.md):
+1. **Provider failure & recovery** with fallback, circuit breaker transitions, and idempotency protection.
+2. **Two-tenant budget enforcement** under concurrency with zero over-allocation.
+3. **LLM quality regression gate** catching degraded models in CI.
 
 ## Limitations
 

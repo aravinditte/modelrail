@@ -4,6 +4,8 @@ WORKDIR /repo
 ENV PYTHONUNBUFFERED=1 PYTHONPATH=/repo/apps/gateway:/repo/packages/evals
 COPY apps/gateway/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
+COPY alembic.ini ./alembic.ini
+COPY migrations ./migrations
 COPY apps ./apps
 COPY packages ./packages
 EXPOSE 8000
