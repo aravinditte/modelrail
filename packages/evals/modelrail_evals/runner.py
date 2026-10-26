@@ -222,11 +222,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="modelrail_evals.runner")
     parser.add_argument("--dataset", required=True, help="Path to dataset .jsonl")
     parser.add_argument("--mode", choices=("good", "degraded"), default="good")
+    parser.add_argument(
+        "--split", choices=("dev", "held_out"), default=None, help="Optional split to evaluate"
+    )
     parser.add_argument("--model", default="scripted-mock", help="Model name recorded in the report config")
     parser.add_argument("--out", required=True, help="Where to write the report JSON")
     args = parser.parse_args(argv)
 
-    cases = load_dataset(args.dataset)
+    cases = load_dataset(args.dataset, split=args.split)
     report = run_evaluation(cases, mode=args.mode, model_name=args.model)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

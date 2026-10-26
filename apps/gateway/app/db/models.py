@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from sqlalchemy import (
     JSON,
@@ -94,8 +95,8 @@ class ModelRoute(Base):
     configuration: Mapped[dict] = mapped_column(
         JSON, default=dict
     )  # provider-specific (fail_key, latency_ms...)
-    input_price_per_token: Mapped[float] = mapped_column(Numeric(18, 10), default=0)
-    output_price_per_token: Mapped[float] = mapped_column(Numeric(18, 10), default=0)
+    input_price_per_token: Mapped[Decimal] = mapped_column(Numeric(18, 10), default=Decimal(0))
+    output_price_per_token: Mapped[Decimal] = mapped_column(Numeric(18, 10), default=Decimal(0))
     pricing_version: Mapped[str] = mapped_column(String(32), default="price-v1")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
@@ -110,7 +111,7 @@ class Policy(Base):
     tokens_per_minute: Mapped[int] = mapped_column(Integer, default=1_000_000)
     max_concurrency: Mapped[int] = mapped_column(Integer, default=32)
     max_output_tokens: Mapped[int] = mapped_column(Integer, default=4096)
-    budget_limit: Mapped[float | None] = mapped_column(Numeric(18, 6), nullable=True)  # None = unlimited
+    budget_limit: Mapped[Decimal | None] = mapped_column(Numeric(18, 6), nullable=True)  # None = unlimited
     routing_policy: Mapped[str] = mapped_column(String(32), default="priority")  # priority|cost|latency
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
@@ -131,7 +132,7 @@ class LogicalRequest(Base):
     total_attempts: Mapped[int] = mapped_column(Integer, default=0)
     input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    final_cost: Mapped[float | None] = mapped_column(Numeric(18, 8), nullable=True)
+    final_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 8), nullable=True)
     cost_basis: Mapped[str | None] = mapped_column(
         String(32), nullable=True
     )  # provider_reported|estimated|simulated|unknown
@@ -157,7 +158,7 @@ class ProviderAttempt(Base):
     latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    cost: Mapped[float | None] = mapped_column(Numeric(18, 8), nullable=True)
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 8), nullable=True)
     cost_basis: Mapped[str | None] = mapped_column(String(32), nullable=True)
     error_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     fallback_reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
@@ -171,7 +172,7 @@ class UsageEvent(Base):
     attempt_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     input_tokens: Mapped[int] = mapped_column(Integer, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, default=0)
-    cost: Mapped[float] = mapped_column(Numeric(18, 8), default=0)
+    cost: Mapped[Decimal] = mapped_column(Numeric(18, 8), default=Decimal(0))
     currency_or_unit: Mapped[str] = mapped_column(String(16), default="USD")
     usage_source: Mapped[str] = mapped_column(
         String(32), default="estimated"
@@ -185,8 +186,8 @@ class BudgetReservation(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), index=True)
     request_id: Mapped[str] = mapped_column(String(36), index=True)
-    reserved_amount: Mapped[float] = mapped_column(Numeric(18, 8), default=0)
-    settled_amount: Mapped[float | None] = mapped_column(Numeric(18, 8), nullable=True)
+    reserved_amount: Mapped[Decimal] = mapped_column(Numeric(18, 8), default=Decimal(0))
+    settled_amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 8), nullable=True)
     status: Mapped[str] = mapped_column(
         String(32), default="reserved"
     )  # reserved|settled|released|reconciliation_needed
@@ -229,6 +230,6 @@ class EvaluationResult(Base):
     latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     input_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    cost: Mapped[float | None] = mapped_column(Numeric(18, 8), nullable=True)
+    cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 8), nullable=True)
     status: Mapped[str] = mapped_column(String(32), default="passed")
     failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)

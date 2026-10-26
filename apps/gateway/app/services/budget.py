@@ -17,6 +17,8 @@ event_key (unique constraint + insert-or-ignore semantics in usage.py).
 
 from __future__ import annotations
 
+from typing import Any
+
 import threading
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -128,7 +130,7 @@ def reconcile(db: Session, stale_after_s: int) -> dict:
         .scalars()
         .all()
     )
-    report = {
+    report: dict[str, Any] = {
         "checked": len(stale),
         "settled_from_usage": 0,
         "released_no_usage": 0,

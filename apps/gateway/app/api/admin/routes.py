@@ -363,8 +363,12 @@ def usage(request: Request, db: Session = Depends(db_session), project_id: str |
         func.sum(UsageEvent.cost),
     )
     by_request: dict[str, dict] = {}
-    project_by_request = dict(db.execute(select(LogicalRequest.id, LogicalRequest.project_id)).all())
-    alias_by_request = dict(db.execute(select(LogicalRequest.id, LogicalRequest.model_alias)).all())
+    project_by_request: dict[str, str] = dict(
+        db.execute(select(LogicalRequest.id, LogicalRequest.project_id)).tuples().all()
+    )
+    alias_by_request: dict[str, str] = dict(
+        db.execute(select(LogicalRequest.id, LogicalRequest.model_alias)).tuples().all()
+    )
     tot_in = tot_out = 0
     tot_cost = Decimal("0")
     scoped_request_ids: set[str] = set()
@@ -418,16 +422,17 @@ def usage(request: Request, db: Session = Depends(db_session), project_id: str |
                 BudgetReservation.status == "reconciliation_needed",
             )
         ).scalar_one()
+        limit = policy.budget_limit
         budgets.append(
             {
                 "project_id": policy.project_id,
-                "budget_limit": str(policy.budget_limit) if policy.budget_limit is not None else None,
+                "budget_limit": str(limit) if limit is not None else None,
                 "settled": str(settled),
                 "reserved": str(reserved),
                 "reconciliation_needed": pending,
                 "utilisation": (
-                    str((float(settled) + float(reserved)) / float(policy.budget_limit))
-                    if policy.budget_limit
+                    str((float(str(settled)) + float(str(reserved))) / float(str(limit)))
+                    if limit is not None and limit > 0
                     else None
                 ),
             }

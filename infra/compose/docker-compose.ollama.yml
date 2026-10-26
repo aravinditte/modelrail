@@ -1,0 +1,15 @@
+# ModelRail — Optional local inference with Ollama (spec §5, §20)
+# Usage:
+#   docker compose -f docker-compose.yml -f infra/compose/docker-compose.ollama.yml --profile ollama up -d
+services:
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

@@ -44,7 +44,7 @@ def get_session_factory():
 
 def init_db() -> None:
     get_engine()
-    Base.metadata.create_all(bind=_engine)
+    Base.metadata.create_all(bind=get_engine())
 
 
 def reset_engine() -> None:

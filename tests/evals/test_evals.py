@@ -48,6 +48,16 @@ def test_dataset_has_exactly_100_cases_with_right_distribution(cases):
     }
 
 
+def test_dataset_has_dev_and_held_out_splits(cases):
+    splits = Counter(c.split for c in cases)
+    assert splits["dev"] == 70
+    assert splits["held_out"] == 30
+    dev_cases = load_dataset(DATASET_PATH, split="dev")
+    held_out_cases = load_dataset(DATASET_PATH, split="held_out")
+    assert len(dev_cases) == 70
+    assert len(held_out_cases) == 30
+
+
 def test_dataset_ids_unique(cases):
     ids = [c.id for c in cases]
     assert len(ids) == len(set(ids))

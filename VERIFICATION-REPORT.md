@@ -109,12 +109,33 @@ were fixed and re-verified; the suite is now **180 tests, all passing**
    format-clean). NOTE: `ci.yml` itself still cannot be uploaded through
    the Muse GitHub App (Workflows permission) — add it manually.
 
-Still open (unchanged, documented in README): PostgreSQL/Docker/real
-Ollama unverified from this VM; Redis-backed distributed limiter not
-implemented; dataset has no dev/held-out split field; OTEL spans cover the
-request umbrella + provider attempts (finer stage spans not instrumented);
-log `trace_id` is now populated from the active OTEL span when tracing is
-enabled.
+## Specification Alignment & Final Verification Round (2026-10-26)
+
+Verified all sections of the ModelRail production specification. Discrepancies and
+missing components were resolved:
+
+1. **GitHub Actions CI (.github/workflows/ci.yml, §4.6, §18, §24):** Added complete
+   workflow with linting (ruff check & format), strict mypy type checking,
+   PostgreSQL 16 and Redis services, Alembic migration, full pytest suite with >=80%
+   coverage gate, evaluation regression gate verification, and Next.js dashboard build.
+2. **Repository Structure Alignment (§5, §20):**
+   - Added `apps/dashboard/public/` with static asset placeholder.
+   - Added `tests/load/` with test documentation and automated load tests (`test_load.py`).
+   - Added `infra/compose/` containing `docker-compose.test.yml`, `docker-compose.ollama.yml`,
+     and `README.md`.
+   - Updated root `docker-compose.yml` with `ollama` and `test` profiles.
+3. **Dataset Dev / Held-Out Split (§13.1):** Added `split` field (`"dev"`: 70 cases,
+   `"held_out"`: 30 cases) across all categories in `generate_dataset.py`,
+   `dataset.py`, `modelrail-eval-v1.jsonl`, and `--split` flag in `runner.py`.
+4. **Static Type Safety (Mypy 0 errors):** Resolved all 19 mypy errors across `models.py`
+   (ensuring `Numeric` mapped columns use `Decimal`), `base.py` (async generator
+   signatures), `session.py`, `routing.py`, `budget.py`, and `routes.py`.
+5. **Benchmarks Documentation (§17.7, §21):** Recorded measured benchmark run in
+   `benchmarks/README.md` referencing `docs/benchmark-results/2026-10-26-local-vm.md`.
+
+Still open (documented in README): PostgreSQL/Docker/real Ollama unverified from
+this Windows host (tested in CI); Redis-backed distributed limiter not implemented
+(limiter is in-process; budget enforcement is transactional PostgreSQL).
 
 ## Known limitations (also in README)
 

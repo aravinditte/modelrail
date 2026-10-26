@@ -6,6 +6,7 @@ Domain types only — no FastAPI objects, no provider-specific HTTP here.
 from __future__ import annotations
 
 import abc
+from typing import AsyncIterator
 from dataclasses import dataclass, field
 
 
@@ -60,8 +61,7 @@ class ProviderAdapter(abc.ABC):
     async def complete(self, request: CompletionRequest) -> CompletionResult: ...
 
     @abc.abstractmethod
-    async def stream(self, request: CompletionRequest):  # async generator of StreamChunk
-        ...
+    def stream(self, request: CompletionRequest) -> AsyncIterator[StreamChunk]: ...
 
     def normalize_usage(self, raw_input: int | None, raw_output: int | None, source: str) -> Usage:
         return Usage(input_tokens=raw_input or 0, output_tokens=raw_output or 0, source=source)

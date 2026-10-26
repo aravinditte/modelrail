@@ -98,6 +98,34 @@ services:
       retries: 10
     restart: unless-stopped
 
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    profiles: ["test"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://modelrail:modelrail-local-only@postgres:5432/modelrail}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin}
+      API_KEY_PEPPER: ${API_KEY_PEPPER:-dev-pepper}
+    command: ["pytest", "tests", "-v"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   redis_data:
+  ollama_data:

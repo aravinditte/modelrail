@@ -14,7 +14,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, List, Union
+from typing import Any, Iterable, List, Optional, Union
 
 DATASET_VERSION = "modelrail-eval-v1"
 CASE_VERSION = "v1"
@@ -42,12 +42,14 @@ class Case:
     mock_output: str
     degraded_output: str
     checks: dict = field(default_factory=dict)
+    split: str = "dev"
 
     def to_dict(self) -> dict:
         return {
             "id": self.id,
             "category": self.category,
             "version": self.version,
+            "split": self.split,
             "input": self.input,
             "expected": self.expected,
             "mock_output": self.mock_output,
@@ -103,6 +105,9 @@ def _validate_case(raw: Any, line_no: int) -> Case:
             raise ValueError(f"line {line_no}: extraction 'expected' must be a JSON string") from exc
         if not isinstance(parsed, dict):
             raise ValueError(f"line {line_no}: extraction 'expected' must encode a JSON object")
+    split = raw.get("split", "dev")
+    if split not in ("dev", "held_out"):
+        raise ValueError(f"line {line_no}: unknown split {split!r}; expected one of ('dev', 'held_out')")
     return Case(
         id=raw["id"],
         category=category,
@@ -112,6 +117,7 @@ def _validate_case(raw: Any, line_no: int) -> Case:
         mock_output=raw["mock_output"],
         degraded_output=raw["degraded_output"],
         checks=checks,
+        split=split,
     )
 
 
@@ -128,8 +134,8 @@ def validate_cases(cases: Iterable[Case]) -> List[Case]:
     return cases
 
 
-def load_dataset(path: Union[str, Path]) -> List[Case]:
-    """Load and validate a JSONL dataset file."""
+def load_dataset(path: Union[str, Path], split: Optional[str] = None) -> List[Case]:
+    """Load and validate a JSONL dataset file, optionally filtered by split."""
     path = Path(path)
     cases: List[Case] = []
     with path.open("r", encoding="utf-8") as fh:
@@ -144,7 +150,12 @@ def load_dataset(path: Union[str, Path]) -> List[Case]:
             cases.append(_validate_case(raw, line_no))
     if not cases:
         raise ValueError(f"dataset at {path} contains no cases")
-    return validate_cases(cases)
+    validated = validate_cases(cases)
+    if split is not None:
+        if split not in ("dev", "held_out"):
+            raise ValueError(f"unknown split {split!r}; expected one of ('dev', 'held_out')")
+        return [c for c in validated if c.split == split]
+    return validated
 
 
 def dataset_version_of(cases: Iterable[Case]) -> str:

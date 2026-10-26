@@ -62,9 +62,10 @@ def rolling_latency_ms(db: Session, route: ModelRoute) -> tuple[float | None, in
         .scalars()
         .all()
     )
-    if not rows:
+    non_null_rows = [r for r in rows if r is not None]
+    if not non_null_rows:
         return None, 0
-    return sum(rows) / len(rows), len(rows)
+    return sum(non_null_rows) / len(non_null_rows), len(non_null_rows)
 
 
 def order_routes(
@@ -91,14 +92,14 @@ def order_routes(
     meta_by_id = {m["route_id"]: m for m in candidates_meta}
 
     if policy_name == "cost":
-        ordered = sorted(routes, key=lambda r: (Decimal(meta_by_id[r.id]["estimated_cost"]), r.priority))
+        ordered = sorted(routes, key=lambda r: (Decimal(str(meta_by_id[r.id]["estimated_cost"])), r.priority))
     elif policy_name == "latency":
 
         def latency_key(r: ModelRoute):
             m = meta_by_id[r.id]
-            if m["latency_samples"] < MIN_LATENCY_SAMPLES or m["avg_latency_ms"] is None:
+            if int(str(m["latency_samples"])) < MIN_LATENCY_SAMPLES or m["avg_latency_ms"] is None:
                 return (1, r.priority)  # cold start: priority order, after measured routes
-            return (0, m["avg_latency_ms"])
+            return (0, float(str(m["avg_latency_ms"])))
 
         ordered = sorted(routes, key=latency_key)
     else:  # priority

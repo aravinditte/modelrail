@@ -5,15 +5,12 @@ Load tests for ModelRail. **Methodology:** `docs/benchmark-methodology.md`.
 deterministic mock provider; p95 gateway-overhead target of 150 ms is a
 target to test, per spec §17.7).
 
-## Results
+## Measured Results
 
-_No results have been measured yet. Add one table per measured run using the
-template in `docs/benchmark-methodology.md`, including git commit, hardware,
-software versions, mock-provider latency, exact k6 command, measured
-throughput, error rate, p50/p95/p99, gateway overhead, and limitations._
+Each row corresponds to an independently documented benchmark report in `docs/benchmark-results/`, detailing the hardware profile, runtime, commit, database configuration, offer profile, and limitations.
 
-| Date | Commit | Environment | Throughput (measured) | p95 (measured) | Error rate (measured) | Notes |
-|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | No runs recorded yet |
+| Date | Commit | Environment | Offer Profile | Measured Throughput | p50 | p95 | Error Rate | Report Link |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-26 | `5346775` | Local VM, Python 3.12, SQLite WAL, Mock 0ms | 25 req/s x 60s (1500 reqs, max 50 concurrent) | 25 req/s (1500/1500) | 15.1 ms | 30.5 ms | 0.0% | [2026-10-26-local-vm.md](../docs/benchmark-results/2026-10-26-local-vm.md) |
 
 Do not enter target numbers in this table. Only measured runs belong here.

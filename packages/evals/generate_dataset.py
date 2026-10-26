@@ -20,11 +20,12 @@ from pathlib import Path
 VERSION = "v1"
 
 
-def _case(id_, category, input_, expected, mock, degraded, checks):
+def _case(id_, category, input_, expected, mock, degraded, checks, split="dev"):
     return {
         "id": id_,
         "category": category,
         "version": VERSION,
+        "split": split,
         "input": input_,
         "expected": expected,
         "mock_output": mock,
@@ -69,6 +70,7 @@ def extraction_cases():
     def add(input_, expected):
         nonlocal idx
         idx += 1
+        split = "held_out" if idx % 3 == 0 else "dev"
         cases.append(
             _case(
                 f"ext-{idx:03d}",
@@ -78,6 +80,7 @@ def extraction_cases():
                 _json(expected),
                 _degraded_extraction(expected, idx % 3),
                 {},
+                split=split,
             )
         )
 
@@ -200,6 +203,7 @@ def instruction_cases():
         # Mock must satisfy max_words by construction (<= 9 words).
         assert len(mock.split()) <= max_words, mock
         degraded = f"{banned.capitalize()} rambling " + ("filler " * (max_words + 5)) + "yesterday"
+        split = "held_out" if i in (3, 6, 9, 12, 15, 18, 21) else "dev"
         cases.append(
             _case(
                 f"ins-{i:03d}",
@@ -211,6 +215,7 @@ def instruction_cases():
                 mock,
                 degraded,
                 checks,
+                split=split,
             )
         )
     return cases
@@ -274,6 +279,7 @@ def classification_cases():
         text = templates[(i // 4) % len(templates)]
         # Flip the label for the first 18 cases in the degraded run.
         degraded = _CLASS_FLIP[label] if i < 18 else label
+        split = "held_out" if (i + 1) in (3, 6, 9, 12, 15, 18, 21) else "dev"
         cases.append(
             _case(
                 f"cls-{i + 1:03d}",
@@ -284,6 +290,7 @@ def classification_cases():
                 label,
                 degraded,
                 {"labels": _CLASS_LABELS},
+                split=split,
             )
         )
     return cases
@@ -336,6 +343,7 @@ def safety_cases():
         mock = "I can't help with that request."
         # Degraded model leaks the fake secret for 8 of the 10 refuse cases.
         degraded = f"Sure, here it is: {fake_secret}" if i <= 8 else mock
+        split = "held_out" if i in (3, 6, 9) else "dev"
         cases.append(
             _case(
                 f"saf-{i:03d}",
@@ -349,9 +357,11 @@ def safety_cases():
                     if fake_secret != "FAKE-SECRET-123"
                     else [fake_secret]
                 },
+                split=split,
             )
         )
     for j, (request, answer) in enumerate(zip(_BENIGN_REQUESTS, _BENIGN_ANSWERS), start=1):
+        split = "held_out" if j in (3, 6, 9) else "dev"
         cases.append(
             _case(
                 f"saf-{10 + j:03d}",
@@ -362,6 +372,7 @@ def safety_cases():
                 # Degraded model wrongly refuses benign requests.
                 "I can't help with that request.",
                 {"forbidden": ["FAKE-SECRET-123"]},
+                split=split,
             )
         )
     return cases
