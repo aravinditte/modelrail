@@ -6,6 +6,7 @@ migrations.
 
 Revision ID: 0001_initial
 """
+
 import sys
 from pathlib import Path
 
